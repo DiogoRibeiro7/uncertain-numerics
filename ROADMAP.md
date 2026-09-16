@@ -16,9 +16,9 @@ Exit criterion: a dependency-light crate with explicit invariants and a clean pu
 
 ### M1.1 Kernels
 
-- [ ] define a scalar kernel trait;
-- [ ] implement squared-exponential/RBF kernel;
-- [ ] validate symmetry, positivity assumptions, and parameter constraints;
+- [x] define a scalar kernel trait;
+- [x] implement squared-exponential/RBF kernel;
+- [x] validate symmetry, positivity assumptions, and parameter constraints;
 - [ ] add Matérn kernels only when their integration contracts are clear.
 
 ### M1.2 Probability measures
