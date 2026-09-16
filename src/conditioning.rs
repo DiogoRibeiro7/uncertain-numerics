@@ -118,9 +118,6 @@ mod tests {
 
     #[test]
     fn solves_known_spd_system_without_inverse() {
-        // [4 1] [x1] = [1]
-        // [1 3] [x2]   [2]
-        // Exact solution: x = [1/11, 7/11].
         let conditioner = GaussianConditioner::new(&[4.0, 1.0, 1.0, 3.0], 2, 0.0)
             .expect("matrix is SPD");
         let solution = conditioner.solve(&[1.0, 2.0]).expect("rhs is valid");
@@ -145,37 +142,38 @@ mod tests {
 
     #[test]
     fn rejects_invalid_matrix_contracts() {
-        assert_eq!(
+        assert!(matches!(
             GaussianConditioner::new(&[], 0, 0.0),
             Err(ConditioningError::ZeroDimension)
-        );
-        assert_eq!(
+        ));
+        assert!(matches!(
             GaussianConditioner::new(&[1.0, 0.0, 0.0], 2, 0.0),
             Err(ConditioningError::MatrixDimensionMismatch)
-        );
-        assert_eq!(
+        ));
+        assert!(matches!(
             GaussianConditioner::new(&[1.0, f64::NAN, 0.0, 1.0], 2, 0.0),
             Err(ConditioningError::NonFiniteMatrixEntry)
-        );
+        ));
     }
 
     #[test]
     fn rejects_invalid_jitter() {
-        assert_eq!(
+        assert!(matches!(
             GaussianConditioner::new(&[1.0], 1, f64::NAN),
             Err(ConditioningError::NonFiniteJitter)
-        );
-        assert_eq!(
+        ));
+        assert!(matches!(
             GaussianConditioner::new(&[1.0], 1, -1.0e-6),
             Err(ConditioningError::NegativeJitter)
-        );
+        ));
     }
 
     #[test]
     fn singular_matrix_fails_without_jitter() {
-        let result = GaussianConditioner::new(&[1.0, 1.0, 1.0, 1.0], 2, 0.0);
-
-        assert_eq!(result, Err(ConditioningError::NotPositiveDefinite));
+        assert!(matches!(
+            GaussianConditioner::new(&[1.0, 1.0, 1.0, 1.0], 2, 0.0),
+            Err(ConditioningError::NotPositiveDefinite)
+        ));
     }
 
     #[test]
