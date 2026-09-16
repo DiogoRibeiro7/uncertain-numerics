@@ -1,5 +1,7 @@
 #![doc = include_str!("../README.md")]
 
+mod conditioning;
+mod conditioning_error;
 mod error;
 mod kernel;
 mod kernel_error;
@@ -9,6 +11,8 @@ mod measure;
 mod measure_error;
 mod posterior;
 
+pub use conditioning::GaussianConditioner;
+pub use conditioning_error::ConditioningError;
 pub use error::PosteriorError;
 pub use kernel::{RbfKernel, ScalarKernel};
 pub use kernel_error::KernelError;
