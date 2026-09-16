@@ -47,18 +47,18 @@ mod tests {
         );
     }
 
-    fn simpson_integral<F>(function: F, lower: f64, upper: f64, intervals: usize) -> f64
+    fn simpson_integral<F>(function: F, lower: f64, upper: f64, intervals: u32) -> f64
     where
         F: Fn(f64) -> f64,
     {
         assert!(intervals > 0);
         assert_eq!(intervals % 2, 0);
 
-        let step = (upper - lower) / intervals as f64;
+        let step = (upper - lower) / f64::from(intervals);
         let mut weighted_sum = function(lower) + function(upper);
 
         for index in 1..intervals {
-            let x = lower + index as f64 * step;
+            let x = lower + f64::from(index) * step;
             let weight = if index % 2 == 0 { 2.0 } else { 4.0 };
             weighted_sum += weight * function(x);
         }
