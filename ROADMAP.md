@@ -50,10 +50,10 @@ and
 
 ### M1.4 Gaussian conditioning
 
-- [ ] introduce a minimal linear-algebra dependency only after the required operations are fixed;
-- [ ] use factorization/solves rather than explicit matrix inversion;
-- [ ] define jitter/regularization semantics explicitly;
-- [ ] surface numerical failures rather than silently repairing them.
+- [x] introduce a minimal linear-algebra dependency while preserving the Rust 1.85 MSRV;
+- [x] use Cholesky factorization/solves rather than explicit matrix inversion;
+- [x] define jitter as an explicit fixed diagonal addition with no automatic escalation;
+- [x] surface dimension, finiteness, jitter, and positive-definiteness failures explicitly.
 
 ### M1.5 Bayesian quadrature posterior
 
