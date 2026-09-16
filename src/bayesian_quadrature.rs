@@ -86,11 +86,10 @@ impl BayesianQuadrature {
         let v = conditioner.solve(&kernel_mean)?;
 
         let posterior_mean = dot(&kernel_mean, &alpha);
-        let raw_variance = self.kernel.kernel_integral(&self.measure) - dot(&kernel_mean, &v);
-        let posterior_variance = non_negative_roundoff_variance(
-            raw_variance,
-            self.kernel.kernel_integral(&self.measure),
-        )?;
+        let prior_integral_variance = self.kernel.kernel_integral(&self.measure);
+        let raw_variance = prior_integral_variance - dot(&kernel_mean, &v);
+        let posterior_variance =
+            non_negative_roundoff_variance(raw_variance, prior_integral_variance)?;
 
         Ok(ScalarNormalPosterior::new(
             posterior_mean,
@@ -146,7 +145,10 @@ fn non_negative_roundoff_variance(
 #[cfg(test)]
 mod tests {
     use super::{BayesianQuadrature, non_negative_roundoff_variance};
-    use crate::{BayesianQuadratureError, ConditioningError, GaussianMeasure, RbfKernel};
+    use crate::{
+        BayesianQuadratureError, ConditioningError, GaussianMeasure, KernelIntegral, KernelMean,
+        RbfKernel,
+    };
 
     const TOLERANCE: f64 = 1.0e-11;
 
