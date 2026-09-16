@@ -23,8 +23,8 @@ Exit criterion: a dependency-light crate with explicit invariants and a clean pu
 
 ### M1.2 Probability measures
 
-- [ ] define the one-dimensional integration-measure abstraction;
-- [ ] implement Gaussian measure;
+- [x] define a normalized one-dimensional continuous probability-measure abstraction;
+- [x] implement Gaussian measure;
 - [ ] implement finite uniform measure;
 - [ ] separate normalized probability measures from generic weighted integration domains.
 
