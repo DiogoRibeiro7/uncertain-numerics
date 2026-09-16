@@ -42,9 +42,11 @@ and
 \kappa = \iint k(x,x')p(x)p(x')\,dx\,dx'.
 \]
 
-- [ ] derive and implement analytic RBF/Gaussian expressions;
-- [ ] test against high-accuracy deterministic quadrature;
-- [ ] reject unsupported kernel/measure combinations explicitly.
+- [x] derive and implement the analytic RBF/Gaussian kernel mean `z(x)`;
+- [x] test the RBF/Gaussian kernel mean against independent deterministic quadrature;
+- [x] make unsupported analytic kernel/measure pairs absent from the type-level contract;
+- [ ] derive and implement the RBF/Gaussian initial integral variance `kappa`;
+- [ ] test `kappa` against independent deterministic quadrature.
 
 ### M1.4 Gaussian conditioning
 
