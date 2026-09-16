@@ -47,7 +47,8 @@ mod tests {
         assert!(intervals > 0);
         assert_eq!(intervals % 2, 0);
 
-        let mut weights = Vec::with_capacity((intervals + 1) as usize);
+        let capacity = usize::try_from(intervals + 1).expect("interval count fits in usize");
+        let mut weights = Vec::with_capacity(capacity);
         for index in 0..=intervals {
             let weight = if index == 0 || index == intervals {
                 1.0
