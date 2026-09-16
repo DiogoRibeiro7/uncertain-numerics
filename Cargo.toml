@@ -1,0 +1,19 @@
+[package]
+name = "uncertain-numerics"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Probabilistic numerical methods with explicit uncertainty over computational quantities."
+repository = "https://github.com/DiogoRibeiro7/uncertain-numerics"
+readme = "README.md"
+keywords = ["probabilistic-numerics", "bayesian-quadrature", "numerical-analysis", "uncertainty"]
+categories = ["mathematics", "science"]
+
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
