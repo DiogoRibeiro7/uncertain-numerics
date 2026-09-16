@@ -67,7 +67,7 @@ For observations `y = f(X)`, compute
 and
 
 \[
-\operatorname{Var}(I\mid y]
+\operatorname{Var}(I\mid y)
 = \kappa-z^\top K^{-1}z.
 \]
 
