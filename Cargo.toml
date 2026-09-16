@@ -10,6 +10,7 @@ keywords = ["probabilistic-numerics", "bayesian-quadrature", "numerical-analysis
 categories = ["mathematics", "science"]
 
 [dependencies]
+nalgebra = "0.33.2"
 
 [lints.rust]
 unsafe_code = "forbid"
