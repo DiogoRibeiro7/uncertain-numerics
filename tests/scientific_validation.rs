@@ -1,4 +1,6 @@
-use uncertain_numerics::{BayesianQuadrature, ContinuousProbabilityMeasure, GaussianMeasure, RbfKernel};
+use uncertain_numerics::{
+    BayesianQuadrature, ContinuousProbabilityMeasure, GaussianMeasure, RbfKernel,
+};
 
 const ABS_TOLERANCE: f64 = 5.0e-3;
 const DETERMINISTIC_TOLERANCE: f64 = 1.0e-10;
@@ -17,8 +19,8 @@ where
     assert_eq!(intervals % 2, 0);
 
     let step = (upper - lower) / f64::from(intervals);
-    let mut weighted_sum = function(lower) * measure.density(lower)
-        + function(upper) * measure.density(upper);
+    let mut weighted_sum =
+        function(lower) * measure.density(lower) + function(upper) * measure.density(upper);
 
     for index in 1..intervals {
         let x = lower + f64::from(index) * step;
@@ -94,7 +96,7 @@ fn bayesian_quadrature_matches_exact_constant_integral() {
 #[test]
 fn bayesian_quadrature_matches_exact_affine_integral() {
     let (quadrature, measure, nodes) = validation_setup();
-    let values: Vec<f64> = nodes.iter().copied().collect();
+    let values: Vec<f64> = nodes.clone();
     let posterior = quadrature
         .posterior(&nodes, &values)
         .expect("posterior should be valid");
@@ -148,8 +150,7 @@ fn bayesian_quadrature_and_deterministic_reference_agree_on_all_fixtures() {
         let posterior = quadrature
             .posterior(&nodes, &values)
             .expect("posterior should be valid");
-        let deterministic =
-            gaussian_weighted_simpson(function, measure, lower, upper, 20_000);
+        let deterministic = gaussian_weighted_simpson(function, measure, lower, upper, 20_000);
 
         assert_close(posterior.mean(), deterministic, ABS_TOLERANCE);
     }

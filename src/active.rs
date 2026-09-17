@@ -71,11 +71,12 @@ impl VarianceReductionAcquisition {
     }
 
     /// Evaluate the posterior integral-variance reduction at `candidate`.
-    pub fn reduction(
-        &self,
-        nodes: &[f64],
-        candidate: f64,
-    ) -> Result<f64, BayesianQuadratureError> {
+    ///
+    /// # Errors
+    ///
+    /// Returns [`BayesianQuadratureError`] for invalid current nodes, a non-finite
+    /// candidate, or a Gaussian-conditioning failure on the current design.
+    pub fn reduction(&self, nodes: &[f64], candidate: f64) -> Result<f64, BayesianQuadratureError> {
         validate_nodes(nodes)?;
         if !candidate.is_finite() {
             return Err(BayesianQuadratureError::NonFiniteObservationNode);
@@ -121,12 +122,8 @@ impl VarianceReductionAcquisition {
         };
 
         for (index, &candidate) in candidates.iter().enumerate().skip(1) {
-            let reduction = self.reduction_with_prepared(
-                nodes,
-                candidate,
-                &conditioner,
-                &solved_mean,
-            )?;
+            let reduction =
+                self.reduction_with_prepared(nodes, candidate, &conditioner, &solved_mean)?;
             if reduction > best.variance_reduction {
                 best = SelectedCandidate {
                     point: candidate,
@@ -183,10 +180,7 @@ impl VarianceReductionAcquisition {
             return Ok(0.0);
         }
 
-        Ok(
-            posterior_integral_covariance * posterior_integral_covariance
-                / predictive_variance,
-        )
+        Ok(posterior_integral_covariance * posterior_integral_covariance / predictive_variance)
     }
 }
 
@@ -206,6 +200,7 @@ fn dot(left: &[f64], right: &[f64]) -> f64 {
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)] // exact round-trips of constructor inputs are intended
 mod tests {
     use super::VarianceReductionAcquisition;
     use crate::{ActiveSelectionError, BayesianQuadrature, GaussianMeasure, RbfKernel};
@@ -230,7 +225,9 @@ mod tests {
     #[test]
     fn existing_node_has_negligible_reduction() {
         let acquisition = fixture();
-        let reduction = acquisition.reduction(&[-1.0, 0.0, 1.0], 0.0).expect("valid");
+        let reduction = acquisition
+            .reduction(&[-1.0, 0.0, 1.0], 0.0)
+            .expect("valid");
         assert!(reduction <= 1.0e-10);
     }
 

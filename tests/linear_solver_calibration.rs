@@ -1,6 +1,4 @@
-use uncertain_numerics::{
-    GaussianLinearBelief, ResidualProjectionSolver, SpdLinearSystem,
-};
+use uncertain_numerics::{GaussianLinearBelief, ResidualProjectionSolver, SpdLinearSystem};
 
 const DIMENSION: usize = 4;
 const REPLICATES: usize = 1_500;
@@ -47,6 +45,7 @@ impl DeterministicNormalRng {
     }
 }
 
+#[rustfmt::skip]
 fn matrix() -> [f64; DIMENSION * DIMENSION] {
     [
         4.0, 1.0, 0.3, 0.0,
@@ -131,8 +130,8 @@ fn fixed_projection_conditioning_is_calibrated_under_the_assumed_prior() {
     let replicates = f64::from(u32::try_from(REPLICATES).expect("replicate count fits in u32"));
     for index in 0..functionals.len() {
         let second_moment = squared_z_sum[index] / replicates;
-        let coverage = f64::from(u32::try_from(covered[index]).expect("coverage fits in u32"))
-            / replicates;
+        let coverage =
+            f64::from(u32::try_from(covered[index]).expect("coverage fits in u32")) / replicates;
         assert!(
             (second_moment - 1.0).abs() <= 0.15,
             "functional {index}: expected unit second moment, got {second_moment:.4}"
@@ -178,8 +177,8 @@ fn adaptive_residual_selection_makes_naive_posterior_uncertainty_conservative() 
     assert!(usable > REPLICATES / 2);
     let usable_f64 = f64::from(u32::try_from(usable).expect("usable count fits in u32"));
     let second_moment = squared_z_sum / usable_f64;
-    let coverage = f64::from(u32::try_from(covered).expect("coverage count fits in u32"))
-        / usable_f64;
+    let coverage =
+        f64::from(u32::try_from(covered).expect("coverage count fits in u32")) / usable_f64;
 
     assert!(
         second_moment < 0.4,

@@ -132,14 +132,13 @@ impl GaussianLinearBelief {
         let gain = &covariance_observation / observation_variance;
         let updated_mean = mean + &gain * innovation;
         let updated_covariance = covariance
-            - (&covariance_observation * covariance_observation.transpose())
-                / observation_variance;
+            - (&covariance_observation * covariance_observation.transpose()) / observation_variance;
 
         let mut covariance_flat = Vec::with_capacity(dimension * dimension);
         for row in 0..dimension {
             for column in 0..dimension {
                 let symmetric_value =
-                    0.5 * (updated_covariance[(row, column)] + updated_covariance[(column, row)]);
+                    updated_covariance[(row, column)].midpoint(updated_covariance[(column, row)]);
                 covariance_flat.push(symmetric_value);
             }
         }
@@ -164,8 +163,8 @@ mod tests {
 
     #[test]
     fn projection_conditioning_makes_observation_exact() {
-        let system = SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2)
-            .expect("system is valid");
+        let system =
+            SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2).expect("system is valid");
         let belief = GaussianLinearBelief::new(&[0.0, 0.0], &[1.0, 0.0, 0.0, 1.0], 2)
             .expect("belief is valid");
         let updated = belief
@@ -178,8 +177,8 @@ mod tests {
 
     #[test]
     fn projection_conditioning_reduces_total_variance() {
-        let system = SpdLinearSystem::new(&[2.0, 0.5, 0.5, 1.5], &[1.0, -1.0], 2)
-            .expect("system is valid");
+        let system =
+            SpdLinearSystem::new(&[2.0, 0.5, 0.5, 1.5], &[1.0, -1.0], 2).expect("system is valid");
         let belief = GaussianLinearBelief::new(&[0.0, 0.0], &[2.0, 0.2, 0.2, 1.0], 2)
             .expect("belief is valid");
         let updated = belief
@@ -193,8 +192,8 @@ mod tests {
 
     #[test]
     fn orthogonal_uncertainty_can_remain_after_one_projection() {
-        let system = SpdLinearSystem::new(&[1.0, 0.0, 0.0, 1.0], &[2.0, -3.0], 2)
-            .expect("system is valid");
+        let system =
+            SpdLinearSystem::new(&[1.0, 0.0, 0.0, 1.0], &[2.0, -3.0], 2).expect("system is valid");
         let belief = GaussianLinearBelief::new(&[0.0, 0.0], &[1.0, 0.0, 0.0, 1.0], 2)
             .expect("belief is valid");
         let updated = belief
@@ -208,8 +207,8 @@ mod tests {
 
     #[test]
     fn repeated_exact_projection_is_degenerate() {
-        let system = SpdLinearSystem::new(&[1.0, 0.0, 0.0, 1.0], &[2.0, -3.0], 2)
-            .expect("system is valid");
+        let system =
+            SpdLinearSystem::new(&[1.0, 0.0, 0.0, 1.0], &[2.0, -3.0], 2).expect("system is valid");
         let belief = GaussianLinearBelief::new(&[0.0, 0.0], &[1.0, 0.0, 0.0, 1.0], 2)
             .expect("belief is valid");
         let updated = belief

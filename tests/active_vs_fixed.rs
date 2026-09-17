@@ -35,8 +35,8 @@ fn narrow_bump(x: f64) -> f64 {
 }
 
 fn fixtures() -> [Fixture; 6] {
-    let bump_variance = 0.16;
-    let bump_centre = 0.7;
+    let bump_variance: f64 = 0.16;
+    let bump_centre: f64 = 0.7;
     let bump_integral = (bump_variance / (bump_variance + 1.0)).sqrt()
         * (-(bump_centre * bump_centre) / (2.0 * (bump_variance + 1.0))).exp();
 
@@ -85,8 +85,8 @@ fn active_design_beats_coarse_fixed_design_in_aggregate_at_equal_budget() {
     // across that domain.
     let initial_nodes = [0.0];
     let candidates = [
-        -3.0, -2.75, -2.5, -2.25, -2.0, -1.75, -1.5, -1.25, -1.0, -0.75, -0.5,
-        -0.25, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0,
+        -3.0, -2.75, -2.5, -2.25, -2.0, -1.75, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, 0.25, 0.5,
+        0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0,
     ];
     let fixed_nodes = [-3.0, -1.5, 0.0, 1.5, 3.0];
 

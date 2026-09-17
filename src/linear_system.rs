@@ -19,11 +19,7 @@ impl SpdLinearSystem {
     ///
     /// Returns [`LinearSolverError`] for invalid dimensions, non-finite values,
     /// non-symmetry, or failure of Cholesky positive-definiteness validation.
-    pub fn new(
-        matrix: &[f64],
-        rhs: &[f64],
-        dimension: usize,
-    ) -> Result<Self, LinearSolverError> {
+    pub fn new(matrix: &[f64], rhs: &[f64], dimension: usize) -> Result<Self, LinearSolverError> {
         if dimension == 0 {
             return Err(LinearSolverError::ZeroDimension);
         }
@@ -44,7 +40,9 @@ impl SpdLinearSystem {
         }
 
         let matrix_view = DMatrix::from_row_slice(dimension, dimension, matrix);
-        let scale = matrix.iter().fold(1.0_f64, |acc, value| acc.max(value.abs()));
+        let scale = matrix
+            .iter()
+            .fold(1.0_f64, |acc, value| acc.max(value.abs()));
         let tolerance = SYMMETRY_TOLERANCE * scale;
         for row in 0..dimension {
             for column in (row + 1)..dimension {
@@ -90,8 +88,8 @@ mod tests {
 
     #[test]
     fn accepts_spd_system() {
-        let system = SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2)
-            .expect("matrix is SPD");
+        let system =
+            SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2).expect("matrix is SPD");
         assert_eq!(system.dimension(), 2);
         assert_eq!(system.rhs(), &[1.0, 2.0]);
     }

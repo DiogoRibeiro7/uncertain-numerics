@@ -26,7 +26,10 @@ impl fmt::Display for ActiveDesignError {
                 write!(f, "posterior-variance stopping tolerance must be finite")
             }
             Self::NegativeVarianceTolerance => {
-                write!(f, "posterior-variance stopping tolerance must be non-negative")
+                write!(
+                    f,
+                    "posterior-variance stopping tolerance must be non-negative"
+                )
             }
             Self::NonFiniteCandidate => write!(f, "candidate points must be finite"),
             Self::NonFiniteFunctionValue => {

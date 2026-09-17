@@ -98,10 +98,7 @@ impl BayesianQuadrature {
     }
 }
 
-fn validate_observations(
-    nodes: &[f64],
-    values: &[f64],
-) -> Result<(), BayesianQuadratureError> {
+fn validate_observations(nodes: &[f64], values: &[f64]) -> Result<(), BayesianQuadratureError> {
     if nodes.is_empty() {
         return Err(BayesianQuadratureError::EmptyObservations);
     }
@@ -123,10 +120,7 @@ fn dot(left: &[f64], right: &[f64]) -> f64 {
     left.iter().zip(right).map(|(x, y)| x * y).sum()
 }
 
-fn non_negative_roundoff_variance(
-    value: f64,
-    scale: f64,
-) -> Result<f64, BayesianQuadratureError> {
+fn non_negative_roundoff_variance(value: f64, scale: f64) -> Result<f64, BayesianQuadratureError> {
     if value >= 0.0 {
         return Ok(value);
     }
@@ -135,10 +129,7 @@ fn non_negative_roundoff_variance(
     if value >= -tolerance {
         Ok(0.0)
     } else {
-        Err(BayesianQuadratureError::MateriallyNegativePosteriorVariance {
-            value,
-            tolerance,
-        })
+        Err(BayesianQuadratureError::MateriallyNegativePosteriorVariance { value, tolerance })
     }
 }
 

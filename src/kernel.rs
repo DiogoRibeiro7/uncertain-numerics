@@ -201,9 +201,7 @@ mod tests {
                     coefficients
                         .iter()
                         .enumerate()
-                        .map(|(j, &right)| {
-                            left * kernel.covariance(points[i], points[j]) * right
-                        })
+                        .map(|(j, &right)| left * kernel.covariance(points[i], points[j]) * right)
                         .sum::<f64>()
                 })
                 .sum::<f64>();
