@@ -84,7 +84,9 @@ Exit criterion: end-to-end Bayesian quadrature for at least one analytically int
 
 - [x] exact constant, affine, quadratic, and off-centre Gaussian fixtures under a non-standard Gaussian measure;
 - [x] independent deterministic Simpson quadrature comparisons for the initial fixture set;
-- [ ] simulation study of posterior interval coverage;
+- [x] deterministic simulation study of 50%, 80%, and 95% posterior interval coverage under the assumed GP prior;
+- [x] verify the standardized integral error has approximately unit second moment under the assumed GP prior;
+- [ ] study calibration under kernel or function-class misspecification;
 - [ ] sensitivity to node placement and kernel hyperparameters;
 - [ ] numerical-stability stress tests;
 - [ ] document failure modes where posterior uncertainty is miscalibrated.
