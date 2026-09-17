@@ -65,7 +65,7 @@
 //!
 //! # Minimum supported Rust version
 //!
-//! Rust 1.85. Raising the MSRV is treated as at least a minor version bump.
+//! Rust 1.89. Raising the MSRV is treated as at least a minor version bump.
 
 // Applied here rather than in `[lints.rust]` so that examples and integration
 // tests, which have no crate-level docs, are not affected.

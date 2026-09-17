@@ -33,6 +33,6 @@ body:
     id: toolchain
     attributes:
       label: Rust toolchain and platform
-      placeholder: "rustc 1.85.0, Windows 11 x86_64"
+      placeholder: "rustc 1.89.0, Windows 11 x86_64"
     validations:
       required: true
