@@ -1,0 +1,6 @@
+# Normalize line endings so rustfmt and CI agree across Windows, macOS and Linux.
+* text=auto eol=lf
+*.rs text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf

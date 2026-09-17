@@ -187,7 +187,9 @@ impl ActiveBayesianQuadrature {
                 });
             }
 
-            let selected = self.acquisition.select_best(&nodes, &remaining_candidates)?;
+            let selected = self
+                .acquisition
+                .select_best(&nodes, &remaining_candidates)?;
             let point = selected.point();
             let value = function(point);
             if !value.is_finite() {
@@ -284,7 +286,7 @@ mod tests {
                 &[-2.0, -0.5, 0.0, 0.5, 2.0],
                 3,
                 0.0,
-                |x| x.cos(),
+                f64::cos,
             )
             .expect("active design should be valid");
 
@@ -313,7 +315,10 @@ mod tests {
             )
             .expect("active design should be valid");
 
-        assert_eq!(result.termination(), ActiveTermination::VarianceToleranceReached);
+        assert_eq!(
+            result.termination(),
+            ActiveTermination::VarianceToleranceReached
+        );
         assert!(result.steps().is_empty());
     }
 
@@ -321,17 +326,15 @@ mod tests {
     fn reports_evaluation_budget_termination() {
         let active = fixture();
         let result = active
-            .run(
-                &[-1.0, 1.0],
-                &[1.0, 1.0],
-                &[-0.5, 0.0, 0.5],
-                1,
-                0.0,
-                |x| x * x,
-            )
+            .run(&[-1.0, 1.0], &[1.0, 1.0], &[-0.5, 0.0, 0.5], 1, 0.0, |x| {
+                x * x
+            })
             .expect("active design should be valid");
 
-        assert_eq!(result.termination(), ActiveTermination::EvaluationBudgetReached);
+        assert_eq!(
+            result.termination(),
+            ActiveTermination::EvaluationBudgetReached
+        );
         assert_eq!(result.steps().len(), 1);
     }
 
@@ -339,14 +342,7 @@ mod tests {
     fn reports_candidate_exhaustion() {
         let active = fixture();
         let result = active
-            .run(
-                &[-1.0, 1.0],
-                &[1.0, 1.0],
-                &[0.0],
-                3,
-                0.0,
-                |x| x * x,
-            )
+            .run(&[-1.0, 1.0], &[1.0, 1.0], &[0.0], 3, 0.0, |x| x * x)
             .expect("active design should be valid");
 
         assert_eq!(result.termination(), ActiveTermination::CandidatesExhausted);
@@ -362,14 +358,7 @@ mod tests {
             Err(ActiveDesignError::NegativeVarianceTolerance)
         );
         assert_eq!(
-            active.run(
-                &[-1.0, 1.0],
-                &[1.0, 1.0],
-                &[0.0],
-                1,
-                0.0,
-                |_| f64::NAN,
-            ),
+            active.run(&[-1.0, 1.0], &[1.0, 1.0], &[0.0], 1, 0.0, |_| f64::NAN),
             Err(ActiveDesignError::NonFiniteFunctionValue)
         );
     }

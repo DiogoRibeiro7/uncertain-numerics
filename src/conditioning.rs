@@ -27,11 +27,7 @@ impl GaussianConditioner {
     ///
     /// Returns [`ConditioningError`] when dimensions are inconsistent, values
     /// are non-finite, jitter is negative, or Cholesky factorization fails.
-    pub fn new(
-        matrix: &[f64],
-        dimension: usize,
-        jitter: f64,
-    ) -> Result<Self, ConditioningError> {
+    pub fn new(matrix: &[f64], dimension: usize, jitter: f64) -> Result<Self, ConditioningError> {
         if dimension == 0 {
             return Err(ConditioningError::ZeroDimension);
         }
@@ -102,6 +98,7 @@ impl GaussianConditioner {
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)] // exact round-trips of constructor inputs are intended
 mod tests {
     use super::GaussianConditioner;
     use crate::ConditioningError;
@@ -118,8 +115,8 @@ mod tests {
 
     #[test]
     fn solves_known_spd_system_without_inverse() {
-        let conditioner = GaussianConditioner::new(&[4.0, 1.0, 1.0, 3.0], 2, 0.0)
-            .expect("matrix is SPD");
+        let conditioner =
+            GaussianConditioner::new(&[4.0, 1.0, 1.0, 3.0], 2, 0.0).expect("matrix is SPD");
         let solution = conditioner.solve(&[1.0, 2.0]).expect("rhs is valid");
 
         assert_close(solution[0], 1.0 / 11.0);
@@ -128,8 +125,8 @@ mod tests {
 
     #[test]
     fn factorization_is_reused_for_multiple_right_hand_sides() {
-        let conditioner = GaussianConditioner::new(&[2.0, 0.5, 0.5, 1.5], 2, 0.0)
-            .expect("matrix is SPD");
+        let conditioner =
+            GaussianConditioner::new(&[2.0, 0.5, 0.5, 1.5], 2, 0.0).expect("matrix is SPD");
 
         let first = conditioner.solve(&[1.0, 0.0]).expect("rhs is valid");
         let second = conditioner.solve(&[0.0, 1.0]).expect("rhs is valid");
@@ -189,8 +186,8 @@ mod tests {
 
     #[test]
     fn rejects_invalid_right_hand_side() {
-        let conditioner = GaussianConditioner::new(&[2.0, 0.0, 0.0, 3.0], 2, 0.0)
-            .expect("matrix is SPD");
+        let conditioner =
+            GaussianConditioner::new(&[2.0, 0.0, 0.0, 3.0], 2, 0.0).expect("matrix is SPD");
 
         assert_eq!(
             conditioner.solve(&[1.0]),

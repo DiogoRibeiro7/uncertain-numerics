@@ -1,2 +1,19 @@
+# Build artifacts
 /target/
+
+# Lockfile: this is a library crate, downstream users resolve their own versions
 Cargo.lock
+
+# Coverage, profiling and benchmark output
+/.benchmarks/
+*.profraw
+*.profdata
+/lcov.info
+
+# Editors and operating systems
+/.idea/
+/.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

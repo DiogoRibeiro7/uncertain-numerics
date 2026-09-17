@@ -35,7 +35,10 @@ fn standardized_error(
         .expect("misspecification fixture should produce a valid posterior");
     let posterior_sd = posterior.standard_deviation();
 
-    assert!(posterior_sd > 0.0, "posterior standard deviation must be positive");
+    assert!(
+        posterior_sd > 0.0,
+        "posterior standard deviation must be positive"
+    );
     (exact_integral - posterior.mean()).abs() / posterior_sd
 }
 
@@ -126,12 +129,7 @@ fn narrow_local_structure_is_missed_by_oversmooth_prior() {
     ];
     let centre = 1.5;
     let width = 0.15;
-    let exact = exact_gaussian_bump_integral(
-        centre,
-        width,
-        measure.mean(),
-        measure.variance(),
-    );
+    let exact = exact_gaussian_bump_integral(centre, width, measure.mean(), measure.variance());
     let values: Vec<f64> = nodes
         .iter()
         .map(|&x| (-(x - centre).powi(2) / (2.0 * width * width)).exp())

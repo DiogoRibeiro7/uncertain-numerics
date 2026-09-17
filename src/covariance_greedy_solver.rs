@@ -339,8 +339,8 @@ mod tests {
 
     #[test]
     fn predicted_trace_reduction_matches_actual_conditioning_drop() {
-        let system = SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2)
-            .expect("system is valid");
+        let system =
+            SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2).expect("system is valid");
         let belief = identity_belief(2);
         let direction = [1.0, 0.0];
         let predicted = CovarianceTraceAcquisition::reduction(&system, &belief, &direction)
@@ -354,8 +354,8 @@ mod tests {
 
     #[test]
     fn selector_returns_global_trace_reduction_maximum() {
-        let system = SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2)
-            .expect("system is valid");
+        let system =
+            SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2).expect("system is valid");
         let belief = identity_belief(2);
         let candidates = vec![vec![1.0, 0.0], vec![0.0, 1.0], vec![1.0, 1.0]];
         let selected = CovarianceTraceAcquisition::select_best(&system, &belief, &candidates)
@@ -380,15 +380,23 @@ mod tests {
         let second = solver
             .solve(&second_system, &identity_belief(2), &candidates)
             .expect("solve is valid");
-        let first_directions: Vec<&[f64]> = first.steps().iter().map(|step| step.direction()).collect();
-        let second_directions: Vec<&[f64]> = second.steps().iter().map(|step| step.direction()).collect();
+        let first_directions: Vec<&[f64]> = first
+            .steps()
+            .iter()
+            .map(super::CovarianceGreedyStep::direction)
+            .collect();
+        let second_directions: Vec<&[f64]> = second
+            .steps()
+            .iter()
+            .map(super::CovarianceGreedyStep::direction)
+            .collect();
         assert_eq!(first_directions, second_directions);
     }
 
     #[test]
     fn reports_projection_budget_termination() {
-        let system = SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2)
-            .expect("system is valid");
+        let system =
+            SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2).expect("system is valid");
         let candidates = vec![vec![1.0, 0.0], vec![0.0, 1.0], vec![1.0, 1.0]];
         let solver = CovarianceGreedyProjectionSolver::new(0.0, 1).expect("solver is valid");
         let result = solver

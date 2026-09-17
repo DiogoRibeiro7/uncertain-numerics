@@ -1,7 +1,5 @@
 use nalgebra::{DMatrix, DVector};
-use uncertain_numerics::{
-    CovarianceGreedyProjectionSolver, GaussianLinearBelief, SpdLinearSystem,
-};
+use uncertain_numerics::{CovarianceGreedyProjectionSolver, GaussianLinearBelief, SpdLinearSystem};
 
 const DIMENSION: usize = 4;
 const REPLICATES: usize = 1_200;
@@ -48,6 +46,7 @@ impl DeterministicNormalRng {
     }
 }
 
+#[rustfmt::skip]
 fn matrix() -> [f64; DIMENSION * DIMENSION] {
     [
         4.0, 1.0, 0.3, 0.0,
@@ -57,6 +56,7 @@ fn matrix() -> [f64; DIMENSION * DIMENSION] {
     ]
 }
 
+#[rustfmt::skip]
 fn prior_covariance() -> [f64; DIMENSION * DIMENSION] {
     [
         2.0, 0.3, 0.0, 0.0,
@@ -98,10 +98,8 @@ fn sample_prior(rng: &mut DeterministicNormalRng) -> Vec<f64> {
         .cholesky()
         .expect("prior covariance is positive definite")
         .l();
-    let standard_normal = DVector::from_iterator(
-        DIMENSION,
-        (0..DIMENSION).map(|_| rng.standard_normal()),
-    );
+    let standard_normal =
+        DVector::from_iterator(DIMENSION, (0..DIMENSION).map(|_| rng.standard_normal()));
     (lower * standard_normal).iter().copied().collect()
 }
 
@@ -148,10 +146,7 @@ fn covariance_greedy_selection_remains_calibrated_under_the_assumed_prior() {
 
     assert_eq!(
         reference_directions,
-        vec![
-            vec![1.0, 0.0, 0.0, 0.0],
-            vec![0.0, 1.0, 0.0, 0.0],
-        ]
+        vec![vec![1.0, 0.0, 0.0, 0.0], vec![0.0, 1.0, 0.0, 0.0]]
     );
 
     for _ in 0..REPLICATES {
@@ -183,8 +178,8 @@ fn covariance_greedy_selection_remains_calibrated_under_the_assumed_prior() {
     let replicates = f64::from(u32::try_from(REPLICATES).expect("replicate count fits in u32"));
     for index in 0..functionals.len() {
         let second_moment = squared_z_sum[index] / replicates;
-        let coverage = f64::from(u32::try_from(covered[index]).expect("coverage fits in u32"))
-            / replicates;
+        let coverage =
+            f64::from(u32::try_from(covered[index]).expect("coverage fits in u32")) / replicates;
         assert!(
             (second_moment - 1.0).abs() <= 0.16,
             "functional {index}: expected unit second moment, got {second_moment:.4}"

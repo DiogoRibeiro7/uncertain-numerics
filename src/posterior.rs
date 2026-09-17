@@ -52,6 +52,7 @@ impl ScalarNormalPosterior {
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)] // exact round-trips of constructor inputs are intended
 mod tests {
     use super::*;
 

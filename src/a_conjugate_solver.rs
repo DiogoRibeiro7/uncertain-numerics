@@ -12,21 +12,25 @@ pub struct AConjugateLinearSolveStep {
 }
 
 impl AConjugateLinearSolveStep {
+    /// Residual norm `||b - A m||` of the belief mean before this projection.
     #[must_use]
     pub const fn residual_norm_before(&self) -> f64 {
         self.residual_norm_before
     }
 
+    /// Residual norm of the updated belief mean after this projection.
     #[must_use]
     pub const fn residual_norm_after(&self) -> f64 {
         self.residual_norm_after
     }
 
+    /// Trace of the posterior covariance after this projection.
     #[must_use]
     pub const fn covariance_trace_after(&self) -> f64 {
         self.covariance_trace_after
     }
 
+    /// Unit search direction `s` defining the projection `s^T A x = s^T b`.
     #[must_use]
     pub fn search_direction(&self) -> &[f64] {
         &self.search_direction
@@ -42,16 +46,19 @@ pub struct AConjugateLinearSolveResult {
 }
 
 impl AConjugateLinearSolveResult {
+    /// Final Gaussian belief over the solution vector.
     #[must_use]
     pub const fn belief(&self) -> &GaussianLinearBelief {
         &self.belief
     }
 
+    /// Ordered history of conditioning steps.
     #[must_use]
     pub fn steps(&self) -> &[AConjugateLinearSolveStep] {
         &self.steps
     }
 
+    /// Reason the solve stopped.
     #[must_use]
     pub const fn termination(&self) -> LinearSolveTermination {
         self.termination
@@ -112,7 +119,7 @@ impl AConjugateProjectionSolver {
         let mut steps = Vec::new();
         let mut directions: Vec<DVector<f64>> = Vec::new();
 
-        let mut residual = residual(&matrix, &rhs, belief.mean());
+        let mut residual = compute_residual(&matrix, &rhs, belief.mean());
         let mut residual_norm = residual.norm();
         if residual_norm <= self.residual_tolerance {
             return Ok(AConjugateLinearSolveResult {
@@ -164,7 +171,7 @@ impl AConjugateProjectionSolver {
                 Err(error) => return Err(error),
             };
 
-            let next_residual = residual(&matrix, &rhs, updated.mean());
+            let next_residual = compute_residual(&matrix, &rhs, updated.mean());
             let next_residual_norm = next_residual.norm();
             let trace = covariance_trace(&updated);
             steps.push(AConjugateLinearSolveStep {
@@ -202,7 +209,7 @@ impl AConjugateProjectionSolver {
     }
 }
 
-fn residual(matrix: &DMatrix<f64>, rhs: &DVector<f64>, mean: &[f64]) -> DVector<f64> {
+fn compute_residual(matrix: &DMatrix<f64>, rhs: &DVector<f64>, mean: &[f64]) -> DVector<f64> {
     rhs - matrix * DVector::from_column_slice(mean)
 }
 
@@ -249,8 +256,10 @@ mod tests {
 
         for left_index in 0..result.steps().len() {
             for right_index in 0..left_index {
-                let left = DVector::from_column_slice(result.steps()[left_index].search_direction());
-                let right = DVector::from_column_slice(result.steps()[right_index].search_direction());
+                let left =
+                    DVector::from_column_slice(result.steps()[left_index].search_direction());
+                let right =
+                    DVector::from_column_slice(result.steps()[right_index].search_direction());
                 let inner = left.dot(&(&matrix * right));
                 assert!(inner.abs() <= 1.0e-10, "A-inner product was {inner:.16e}");
             }
@@ -259,14 +268,17 @@ mod tests {
 
     #[test]
     fn solves_small_spd_system_within_dimension_steps() {
-        let system = SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2)
-            .expect("system is valid");
+        let system =
+            SpdLinearSystem::new(&[4.0, 1.0, 1.0, 3.0], &[1.0, 2.0], 2).expect("system is valid");
         let solver = AConjugateProjectionSolver::new(1.0e-12, 0.0, 2).expect("solver is valid");
         let result = solver
             .solve(&system, &identity_belief(2))
             .expect("solve should succeed");
 
-        assert_eq!(result.termination(), LinearSolveTermination::ResidualToleranceReached);
+        assert_eq!(
+            result.termination(),
+            LinearSolveTermination::ResidualToleranceReached
+        );
         assert!(result.steps().len() <= 2);
         assert!((result.belief().mean()[0] - 1.0 / 11.0).abs() < 1.0e-10);
         assert!((result.belief().mean()[1] - 7.0 / 11.0).abs() < 1.0e-10);

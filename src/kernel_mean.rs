@@ -128,8 +128,8 @@ mod tests {
         ];
 
         for (signal_variance, length_scale, measure_mean, measure_variance, x) in cases {
-            let kernel = RbfKernel::new(signal_variance, length_scale)
-                .expect("kernel parameters are valid");
+            let kernel =
+                RbfKernel::new(signal_variance, length_scale).expect("kernel parameters are valid");
             let measure = GaussianMeasure::new(measure_mean, measure_variance)
                 .expect("measure parameters are valid");
             let standard_deviation = measure.standard_deviation();

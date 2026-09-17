@@ -62,12 +62,7 @@ mod tests {
         weights
     }
 
-    fn simpson_double_integral<F>(
-        function: F,
-        lower: f64,
-        upper: f64,
-        intervals: u32,
-    ) -> f64
+    fn simpson_double_integral<F>(function: F, lower: f64, upper: f64, intervals: u32) -> f64
     where
         F: Fn(f64, f64) -> f64,
     {
@@ -118,7 +113,8 @@ mod tests {
         let kernel = RbfKernel::new(3.0, 0.6).expect("kernel parameters are valid");
 
         for variance in [0.01, 0.25, 1.0, 10.0, 100.0] {
-            let measure = GaussianMeasure::new(0.0, variance).expect("measure parameters are valid");
+            let measure =
+                GaussianMeasure::new(0.0, variance).expect("measure parameters are valid");
             let integral = kernel.kernel_integral(&measure);
 
             assert!(integral > 0.0);
@@ -146,8 +142,8 @@ mod tests {
         ];
 
         for (signal_variance, length_scale, measure_mean, measure_variance) in cases {
-            let kernel = RbfKernel::new(signal_variance, length_scale)
-                .expect("kernel parameters are valid");
+            let kernel =
+                RbfKernel::new(signal_variance, length_scale).expect("kernel parameters are valid");
             let measure = GaussianMeasure::new(measure_mean, measure_variance)
                 .expect("measure parameters are valid");
             let standard_deviation = measure.standard_deviation();
@@ -155,9 +151,7 @@ mod tests {
             let upper = measure.mean() + 8.0 * standard_deviation;
 
             let numerical = simpson_double_integral(
-                |x, y| {
-                    kernel.covariance(x, y) * measure.density(x) * measure.density(y)
-                },
+                |x, y| kernel.covariance(x, y) * measure.density(x) * measure.density(y),
                 lower,
                 upper,
                 400,

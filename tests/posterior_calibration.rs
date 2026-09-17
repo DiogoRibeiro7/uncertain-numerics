@@ -58,11 +58,7 @@ struct NominalCoverage {
     nominal: f64,
 }
 
-fn joint_covariance(
-    kernel: RbfKernel,
-    measure: GaussianMeasure,
-    nodes: &[f64],
-) -> DMatrix<f64> {
+fn joint_covariance(kernel: RbfKernel, measure: GaussianMeasure, nodes: &[f64]) -> DMatrix<f64> {
     let dimension = nodes.len() + 1;
     let mut covariance = DMatrix::zeros(dimension, dimension);
 

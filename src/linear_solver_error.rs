@@ -35,18 +35,31 @@ impl fmt::Display for LinearSolverError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ZeroDimension => write!(f, "linear-system dimension must be positive"),
-            Self::MatrixDimensionMismatch => write!(f, "flattened matrix length must equal dimension squared"),
-            Self::VectorDimensionMismatch => write!(f, "vector length must equal the system dimension"),
+            Self::MatrixDimensionMismatch => {
+                write!(f, "flattened matrix length must equal dimension squared")
+            }
+            Self::VectorDimensionMismatch => {
+                write!(f, "vector length must equal the system dimension")
+            }
             Self::NonFiniteMatrixEntry => write!(f, "matrix entries must be finite"),
             Self::NonFiniteVectorEntry => write!(f, "vector entries must be finite"),
             Self::NonFiniteTolerance => write!(f, "solver tolerances must be finite"),
             Self::NegativeTolerance => write!(f, "solver tolerances must be non-negative"),
-            Self::EmptyCandidateDirections => write!(f, "at least one candidate projection direction is required"),
+            Self::EmptyCandidateDirections => {
+                write!(f, "at least one candidate projection direction is required")
+            }
             Self::NonSymmetricSystemMatrix => write!(f, "system matrix must be symmetric"),
-            Self::SystemMatrixNotPositiveDefinite => write!(f, "system matrix must be positive definite"),
+            Self::SystemMatrixNotPositiveDefinite => {
+                write!(f, "system matrix must be positive definite")
+            }
             Self::NonSymmetricCovariance => write!(f, "covariance matrix must be symmetric"),
-            Self::CovarianceNotPositiveSemidefinite => write!(f, "covariance matrix must be positive semidefinite"),
-            Self::DegenerateObservation => write!(f, "observation direction has no remaining prior uncertainty"),
+            Self::CovarianceNotPositiveSemidefinite => {
+                write!(f, "covariance matrix must be positive semidefinite")
+            }
+            Self::DegenerateObservation => write!(
+                f,
+                "observation direction has no remaining prior uncertainty"
+            ),
         }
     }
 }

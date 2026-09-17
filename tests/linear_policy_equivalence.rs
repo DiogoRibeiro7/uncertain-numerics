@@ -22,6 +22,7 @@ fn assert_vectors_close(left: &[f64], right: &[f64], tolerance: f64) {
 }
 
 #[test]
+#[rustfmt::skip]
 fn equal_projection_budgets_produce_equivalent_gaussian_posteriors() {
     let fixtures = [
         (
