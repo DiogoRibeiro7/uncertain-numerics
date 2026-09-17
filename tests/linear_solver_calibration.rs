@@ -149,7 +149,7 @@ fn adaptive_residual_selection_makes_naive_posterior_uncertainty_conservative() 
     let matrix = matrix();
     let functional = [0.0, 0.0, 1.0, 0.0];
     let solver = ResidualProjectionSolver::new(0.0, 0.0, 2).expect("solver is valid");
-    let mut rng = DeterministicNormalRng::new(0xADA9_71VE_CAFE_F00D_u64);
+    let mut rng = DeterministicNormalRng::new(0xADA9_71CE_CAFE_F00D_u64);
     let mut squared_z_sum = 0.0;
     let mut covered = 0_usize;
     let mut usable = 0_usize;
