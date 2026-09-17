@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-17
+
 ### Added
 
 - `ScalarNormalPosterior`: validated Gaussian posterior for a scalar computational quantity.
@@ -20,10 +22,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Runnable examples for Bayesian quadrature, active design, and probabilistic linear solvers.
 - Project infrastructure: dual MIT/Apache-2.0 licensing, cross-platform CI with MSRV, documentation, and `cargo-deny` checks, tag-driven release workflow, Dependabot, issue and pull request templates, contributing guide, security policy, and code of conduct.
 
-### Fixed
-
-- The library failed to compile because the residual and A-conjugate solvers shadowed their `residual` helper with a local binding before calling it.
-- Integration tests failed to compile because of ambiguous floating-point literals.
-- Source formatting and `clippy::pedantic` findings that broke the CI pipeline.
-
-[Unreleased]: https://github.com/DiogoRibeiro7/uncertain-numerics/commits/main
+[Unreleased]: https://github.com/DiogoRibeiro7/uncertain-numerics/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/DiogoRibeiro7/uncertain-numerics/releases/tag/v0.1.0

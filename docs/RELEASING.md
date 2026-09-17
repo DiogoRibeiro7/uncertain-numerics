@@ -23,7 +23,7 @@ Releases are driven by git tags. Pushing a tag of the form `vX.Y.Z` runs the [re
    git push origin vX.Y.Z
    ```
 
-7. Watch the release workflow. If it fails before publishing, fix the problem, delete the tag locally and remotely, and tag again. If it fails after publishing, do not re-tag: crates.io versions are immutable, so bump to the next patch version instead.
+7. Watch the release workflow. If the version is already on crates.io, for example after a manual first publication, the publish job is skipped and the GitHub release is still created. If it fails before publishing, fix the problem, delete the tag locally and remotely, and tag again. If it fails after publishing, do not re-tag: crates.io versions are immutable, so bump to the next patch version instead.
 
 ## One-time setup
 
@@ -37,7 +37,7 @@ cargo publish --dry-run
 cargo publish
 ```
 
-Immediately before the first publish, confirm the name is still free at <https://crates.io/crates/uncertain-numerics>.
+Immediately before the first publish, confirm the name is still free at <https://crates.io/crates/uncertain-numerics>. Then tag the published commit and push the tag as usual: the workflow notices the version already exists, skips publishing, and creates the GitHub release.
 
 ### Trusted publishing
 
