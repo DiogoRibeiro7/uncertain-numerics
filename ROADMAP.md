@@ -110,7 +110,10 @@ as the expected reduction in posterior integral variance.
 - [x] implement the posterior-variance reduction criterion;
 - [x] verify the criterion matches the actual posterior-variance drop after augmenting the node set;
 - [x] make the criterion independent of observed function values;
-- [ ] sequential node selection over a candidate set;
+- [x] select the maximum-reduction node from a deterministic candidate set;
+- [x] reuse one Cholesky factorization across all candidate evaluations;
+- [x] define deterministic first-maximum tie breaking and explicit candidate validation;
+- [ ] sequential active-design loop with function evaluation callback;
 - [ ] stopping rules based on computational uncertainty;
 - [ ] deterministic-vs-active benchmark suite.
 
