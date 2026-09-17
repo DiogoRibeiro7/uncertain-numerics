@@ -1,6 +1,8 @@
 # Tag-driven release: pushing `vX.Y.Z` verifies the tag against Cargo.toml, runs the
 # test suite, publishes to crates.io through trusted publishing, and creates a GitHub
 # release whose notes are the matching CHANGELOG.md section.
+# If the version is already on crates.io (for example after a manual first publish),
+# the publish job is skipped and only the GitHub release is created.
 # One-time setup is described in docs/RELEASING.md.
 name: Release
 
@@ -18,23 +20,54 @@ jobs:
   verify:
     name: Verify
     runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.registry.outputs.published }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Check that the tag matches Cargo.toml
+        id: version
         run: |
-          crate_version="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')"
+          metadata="$(cargo metadata --no-deps --format-version 1)"
+          crate_name="$(echo "$metadata" | jq -r '.packages[0].name')"
+          crate_version="$(echo "$metadata" | jq -r '.packages[0].version')"
           tag_version="${GITHUB_REF_NAME#v}"
           if [ "$crate_version" != "$tag_version" ]; then
             echo "::error::Cargo.toml version $crate_version does not match tag $tag_version"
             exit 1
           fi
+          echo "name=$crate_name" >> "$GITHUB_OUTPUT"
+          echo "version=$crate_version" >> "$GITHUB_OUTPUT"
+      - name: Check whether this version is already on crates.io
+        id: registry
+        env:
+          CRATE_NAME: ${{ steps.version.outputs.name }}
+          CRATE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          status="$(curl -s -o /dev/null -w '%{http_code}' \
+            -A "$CRATE_NAME release workflow (https://github.com/${GITHUB_REPOSITORY})" \
+            "https://crates.io/api/v1/crates/${CRATE_NAME}/${CRATE_VERSION}")"
+          case "$status" in
+            200)
+              echo "Version $CRATE_VERSION is already on crates.io; the publish job will be skipped."
+              echo "published=true" >> "$GITHUB_OUTPUT"
+              ;;
+            404)
+              echo "published=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::Unexpected crates.io response: HTTP $status"
+              exit 1
+              ;;
+          esac
       - run: cargo test --all-features
-      - run: cargo publish --dry-run
+      - if: steps.registry.outputs.published == 'false'
+        run: cargo publish --dry-run
 
   publish:
     name: Publish to crates.io
     needs: verify
+    if: needs.verify.outputs.published == 'false'
     runs-on: ubuntu-latest
     environment: release
     permissions:
@@ -52,7 +85,8 @@ jobs:
 
   github-release:
     name: GitHub release
-    needs: publish
+    needs: [verify, publish]
+    if: always() && needs.verify.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -62,7 +96,7 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           awk -v ver="$version" '
-            $0 ~ "^## \\[" ver "\\]" { grab = 1; next }
+            $0 ~ "^## \[" ver "\]" { grab = 1; next }
             grab && /^## \[/ { exit }
             grab { print }
           ' CHANGELOG.md > release-notes.md

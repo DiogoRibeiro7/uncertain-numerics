@@ -10,7 +10,7 @@ repository = "https://github.com/DiogoRibeiro7/uncertain-numerics"
 homepage = "https://github.com/DiogoRibeiro7/uncertain-numerics"
 documentation = "https://docs.rs/uncertain-numerics"
 readme = "README.md"
-keywords = ["probabilistic-numerics", "bayesian-quadrature", "numerical-analysis", "uncertainty"]
+keywords = ["probabilistic", "bayesian-quadrature", "numerical-analysis", "uncertainty", "gaussian-process"]
 categories = ["mathematics", "science"]
 exclude = [
     "/.github/",

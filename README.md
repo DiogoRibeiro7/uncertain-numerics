@@ -21,14 +21,16 @@ Probabilistic numerical methods in Rust, with explicit uncertainty over computat
 
 ## Installation
 
-The crate has not been published to crates.io yet. Until the first release, depend on the repository directly:
+```sh
+cargo add uncertain-numerics
+```
+
+or, in `Cargo.toml`:
 
 ```toml
 [dependencies]
-uncertain-numerics = { git = "https://github.com/DiogoRibeiro7/uncertain-numerics" }
+uncertain-numerics = "0.1"
 ```
-
-After the first release this becomes `cargo add uncertain-numerics`.
 
 ## Quick start
 
