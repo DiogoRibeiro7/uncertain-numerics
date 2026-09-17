@@ -88,10 +88,12 @@ Exit criterion: end-to-end Bayesian quadrature for at least one analytically int
 - [x] verify the standardized integral error has approximately unit second moment under the assumed GP prior;
 - [x] study deterministic misspecification with oscillatory, polynomial, and narrow-local-feature integrands;
 - [x] demonstrate sensitivity to RBF length scale and node placement;
-- [ ] numerical-stability stress tests;
+- [x] stress-test nearly duplicate nodes, extreme smoothness, and explicit jitter regularization;
 - [x] document concrete failure modes where posterior uncertainty becomes overconfident under misspecification.
 
-Exit criterion: the library demonstrates not only numerical accuracy but also whether its uncertainty statements are empirically calibrated.
+Numerical-stability policy: jitter is an explicit regularization parameter. It may improve matrix conditioning, but because it changes the posterior it must remain visible to the caller rather than being silently increased until factorization succeeds.
+
+Exit criterion: the library demonstrates not only numerical accuracy but also whether its uncertainty statements are empirically calibrated, and exposes rather than hides important numerical-stability limits.
 
 ## M3 — Active Bayesian quadrature
 
