@@ -82,8 +82,8 @@ Exit criterion: end-to-end Bayesian quadrature for at least one analytically int
 
 ## M2 — Scientific validation
 
-- [ ] exact polynomial and Gaussian-integral fixtures;
-- [ ] deterministic quadrature comparisons;
+- [x] exact constant, affine, quadratic, and off-centre Gaussian fixtures under a non-standard Gaussian measure;
+- [x] independent deterministic Simpson quadrature comparisons for the initial fixture set;
 - [ ] simulation study of posterior interval coverage;
 - [ ] sensitivity to node placement and kernel hyperparameters;
 - [ ] numerical-stability stress tests;
