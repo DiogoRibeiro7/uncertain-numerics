@@ -97,8 +97,20 @@ Exit criterion: the library demonstrates not only numerical accuracy but also wh
 
 ## M3 — Active Bayesian quadrature
 
-- [ ] posterior-variance reduction criterion;
-- [ ] sequential node selection;
+For current nodes `X`, candidate `x_*`, regularized Gram matrix `A = K + jitter I`, candidate covariance vector `k_*`, and kernel-mean vector `z`, use
+
+\[
+\Delta(x_*) =
+\frac{\left(z_* - k_*^\top A^{-1} z\right)^2}
+{k(x_*,x_*) + \mathrm{jitter} - k_*^\top A^{-1} k_*}
+\]
+
+as the expected reduction in posterior integral variance.
+
+- [x] implement the posterior-variance reduction criterion;
+- [x] verify the criterion matches the actual posterior-variance drop after augmenting the node set;
+- [x] make the criterion independent of observed function values;
+- [ ] sequential node selection over a candidate set;
 - [ ] stopping rules based on computational uncertainty;
 - [ ] deterministic-vs-active benchmark suite.
 
