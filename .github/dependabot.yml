@@ -12,3 +12,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # `dtolnay/rust-toolchain@1.85` pins the MSRV toolchain, and `@stable` is a
+      # moving ref. Neither is an action version, so Dependabot must not bump them.
+      - dependency-name: dtolnay/rust-toolchain
