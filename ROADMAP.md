@@ -113,9 +113,11 @@ as the expected reduction in posterior integral variance.
 - [x] select the maximum-reduction node from a deterministic candidate set;
 - [x] reuse one Cholesky factorization across all candidate evaluations;
 - [x] define deterministic first-maximum tie breaking and explicit candidate validation;
-- [ ] sequential active-design loop with function evaluation callback;
-- [ ] stopping rules based on computational uncertainty;
+- [x] sequential active-design loop with function evaluation callback;
+- [x] stopping rules based on posterior integral variance, evaluation budget, and candidate exhaustion;
 - [ ] deterministic-vs-active benchmark suite.
+
+The sequential design records every selected point, function value, predicted variance reduction, and resulting posterior variance. This keeps stopping decisions and later benchmark comparisons auditable.
 
 ## M4 — Broader probabilistic numerics
 
