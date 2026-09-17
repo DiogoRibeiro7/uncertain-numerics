@@ -115,9 +115,13 @@ as the expected reduction in posterior integral variance.
 - [x] define deterministic first-maximum tie breaking and explicit candidate validation;
 - [x] sequential active-design loop with function evaluation callback;
 - [x] stopping rules based on posterior integral variance, evaluation budget, and candidate exhaustion;
-- [ ] deterministic-vs-active benchmark suite.
+- [x] deterministic active-vs-fixed benchmark at equal evaluation budget.
 
-The sequential design records every selected point, function value, predicted variance reduction, and resulting posterior variance. This keeps stopping decisions and later benchmark comparisons auditable.
+The sequential design records every selected point, function value, predicted variance reduction, and resulting posterior variance. This keeps stopping decisions and benchmark comparisons auditable.
+
+The equal-budget benchmark deliberately evaluates both aggregate and per-function behavior. Active placement is required to reduce posterior variance and aggregate mean squared integration error for the benchmark suite, but it is not claimed to dominate fixed placement on every individual integrand.
+
+Exit criterion: active Bayesian quadrature has a validated acquisition rule, deterministic finite-candidate selection, explicit stopping semantics, and an equal-budget benchmark demonstrating aggregate benefit without claiming universal function-wise dominance.
 
 ## M4 — Broader probabilistic numerics
 
