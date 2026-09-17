@@ -1,9 +1,62 @@
 use nalgebra::{DMatrix, DVector};
 
-use crate::{
-    GaussianLinearBelief, LinearSolveStep, LinearSolveTermination, LinearSolverError,
-    ProbabilisticLinearSolveResult, SpdLinearSystem,
-};
+use crate::{GaussianLinearBelief, LinearSolveTermination, LinearSolverError, SpdLinearSystem};
+
+/// One A-conjugate projection-conditioning step.
+#[derive(Debug, Clone, PartialEq)]
+pub struct AConjugateLinearSolveStep {
+    residual_norm_before: f64,
+    residual_norm_after: f64,
+    covariance_trace_after: f64,
+    search_direction: Vec<f64>,
+}
+
+impl AConjugateLinearSolveStep {
+    #[must_use]
+    pub const fn residual_norm_before(&self) -> f64 {
+        self.residual_norm_before
+    }
+
+    #[must_use]
+    pub const fn residual_norm_after(&self) -> f64 {
+        self.residual_norm_after
+    }
+
+    #[must_use]
+    pub const fn covariance_trace_after(&self) -> f64 {
+        self.covariance_trace_after
+    }
+
+    #[must_use]
+    pub fn search_direction(&self) -> &[f64] {
+        &self.search_direction
+    }
+}
+
+/// Result of an A-conjugate probabilistic linear solve.
+#[derive(Debug, Clone, PartialEq)]
+pub struct AConjugateLinearSolveResult {
+    belief: GaussianLinearBelief,
+    steps: Vec<AConjugateLinearSolveStep>,
+    termination: LinearSolveTermination,
+}
+
+impl AConjugateLinearSolveResult {
+    #[must_use]
+    pub const fn belief(&self) -> &GaussianLinearBelief {
+        &self.belief
+    }
+
+    #[must_use]
+    pub fn steps(&self) -> &[AConjugateLinearSolveStep] {
+        &self.steps
+    }
+
+    #[must_use]
+    pub const fn termination(&self) -> LinearSolveTermination {
+        self.termination
+    }
+}
 
 /// Probabilistic linear solver using residual directions orthogonalized in the `A` inner product.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -47,7 +100,7 @@ impl AConjugateProjectionSolver {
         &self,
         system: &SpdLinearSystem,
         initial_belief: &GaussianLinearBelief,
-    ) -> Result<ProbabilisticLinearSolveResult, LinearSolverError> {
+    ) -> Result<AConjugateLinearSolveResult, LinearSolverError> {
         if system.dimension() != initial_belief.dimension() {
             return Err(LinearSolverError::VectorDimensionMismatch);
         }
@@ -62,18 +115,18 @@ impl AConjugateProjectionSolver {
         let mut residual = residual(&matrix, &rhs, belief.mean());
         let mut residual_norm = residual.norm();
         if residual_norm <= self.residual_tolerance {
-            return Ok(ProbabilisticLinearSolveResult::new(
+            return Ok(AConjugateLinearSolveResult {
                 belief,
                 steps,
-                LinearSolveTermination::ResidualToleranceReached,
-            ));
+                termination: LinearSolveTermination::ResidualToleranceReached,
+            });
         }
         if covariance_trace(&belief) <= self.covariance_trace_tolerance {
-            return Ok(ProbabilisticLinearSolveResult::new(
+            return Ok(AConjugateLinearSolveResult {
                 belief,
                 steps,
-                LinearSolveTermination::CovarianceTraceToleranceReached,
-            ));
+                termination: LinearSolveTermination::CovarianceTraceToleranceReached,
+            });
         }
 
         for _ in 0..self.max_iterations {
@@ -91,22 +144,22 @@ impl AConjugateProjectionSolver {
             let search_norm = search.norm();
             let tolerance = 128.0 * f64::EPSILON * residual_norm.max(1.0);
             if search_norm <= tolerance {
-                return Ok(ProbabilisticLinearSolveResult::new(
+                return Ok(AConjugateLinearSolveResult {
                     belief,
                     steps,
-                    LinearSolveTermination::NoInformativeDirection,
-                ));
+                    termination: LinearSolveTermination::NoInformativeDirection,
+                });
             }
             search /= search_norm;
 
             let updated = match belief.condition_on_projection(system, search.as_slice()) {
                 Ok(updated) => updated,
                 Err(LinearSolverError::DegenerateObservation) => {
-                    return Ok(ProbabilisticLinearSolveResult::new(
+                    return Ok(AConjugateLinearSolveResult {
                         belief,
                         steps,
-                        LinearSolveTermination::NoInformativeDirection,
-                    ));
+                        termination: LinearSolveTermination::NoInformativeDirection,
+                    });
                 }
                 Err(error) => return Err(error),
             };
@@ -114,38 +167,38 @@ impl AConjugateProjectionSolver {
             let next_residual = residual(&matrix, &rhs, updated.mean());
             let next_residual_norm = next_residual.norm();
             let trace = covariance_trace(&updated);
-            steps.push(LinearSolveStep::new(
-                residual_norm,
-                next_residual_norm,
-                trace,
-                search.as_slice().to_vec(),
-            ));
+            steps.push(AConjugateLinearSolveStep {
+                residual_norm_before: residual_norm,
+                residual_norm_after: next_residual_norm,
+                covariance_trace_after: trace,
+                search_direction: search.as_slice().to_vec(),
+            });
             directions.push(search);
             belief = updated;
             residual = next_residual;
             residual_norm = next_residual_norm;
 
             if residual_norm <= self.residual_tolerance {
-                return Ok(ProbabilisticLinearSolveResult::new(
+                return Ok(AConjugateLinearSolveResult {
                     belief,
                     steps,
-                    LinearSolveTermination::ResidualToleranceReached,
-                ));
+                    termination: LinearSolveTermination::ResidualToleranceReached,
+                });
             }
             if trace <= self.covariance_trace_tolerance {
-                return Ok(ProbabilisticLinearSolveResult::new(
+                return Ok(AConjugateLinearSolveResult {
                     belief,
                     steps,
-                    LinearSolveTermination::CovarianceTraceToleranceReached,
-                ));
+                    termination: LinearSolveTermination::CovarianceTraceToleranceReached,
+                });
             }
         }
 
-        Ok(ProbabilisticLinearSolveResult::new(
+        Ok(AConjugateLinearSolveResult {
             belief,
             steps,
-            LinearSolveTermination::IterationBudgetReached,
-        ))
+            termination: LinearSolveTermination::IterationBudgetReached,
+        })
     }
 }
 
