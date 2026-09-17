@@ -114,6 +114,6 @@ jobs:
               text = "No CHANGELOG.md section found for " + version + "."
           open("release-notes.md", "w", encoding="utf-8").write(text + chr(10))
           PY
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           body_path: release-notes.md
