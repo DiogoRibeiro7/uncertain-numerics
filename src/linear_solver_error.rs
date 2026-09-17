@@ -17,6 +17,8 @@ pub enum LinearSolverError {
     NonFiniteTolerance,
     /// A solver tolerance is negative.
     NegativeTolerance,
+    /// No candidate projection directions were supplied.
+    EmptyCandidateDirections,
     /// The system matrix is not symmetric within numerical tolerance.
     NonSymmetricSystemMatrix,
     /// The system matrix is not positive definite.
@@ -39,6 +41,7 @@ impl fmt::Display for LinearSolverError {
             Self::NonFiniteVectorEntry => write!(f, "vector entries must be finite"),
             Self::NonFiniteTolerance => write!(f, "solver tolerances must be finite"),
             Self::NegativeTolerance => write!(f, "solver tolerances must be non-negative"),
+            Self::EmptyCandidateDirections => write!(f, "at least one candidate projection direction is required"),
             Self::NonSymmetricSystemMatrix => write!(f, "system matrix must be symmetric"),
             Self::SystemMatrixNotPositiveDefinite => write!(f, "system matrix must be positive definite"),
             Self::NonSymmetricCovariance => write!(f, "covariance matrix must be symmetric"),

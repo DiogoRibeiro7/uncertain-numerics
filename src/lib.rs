@@ -9,6 +9,7 @@ mod bayesian_quadrature;
 mod bayesian_quadrature_error;
 mod conditioning;
 mod conditioning_error;
+mod covariance_greedy_solver;
 mod error;
 mod kernel;
 mod kernel_error;
@@ -35,6 +36,10 @@ pub use bayesian_quadrature::BayesianQuadrature;
 pub use bayesian_quadrature_error::BayesianQuadratureError;
 pub use conditioning::GaussianConditioner;
 pub use conditioning_error::ConditioningError;
+pub use covariance_greedy_solver::{
+    CovarianceGreedyProjectionSolver, CovarianceGreedySolveResult, CovarianceGreedyStep,
+    CovarianceGreedyTermination, CovarianceTraceAcquisition, SelectedLinearDirection,
+};
 pub use error::PosteriorError;
 pub use kernel::{RbfKernel, ScalarKernel};
 pub use kernel_error::KernelError;
