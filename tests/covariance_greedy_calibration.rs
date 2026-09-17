@@ -1,3 +1,4 @@
+use nalgebra::{DMatrix, DVector};
 use uncertain_numerics::{
     CovarianceGreedyProjectionSolver, GaussianLinearBelief, SpdLinearSystem,
 };
@@ -56,13 +57,18 @@ fn matrix() -> [f64; DIMENSION * DIMENSION] {
     ]
 }
 
-fn identity_belief() -> GaussianLinearBelief {
-    let mut covariance = vec![0.0; DIMENSION * DIMENSION];
-    for index in 0..DIMENSION {
-        covariance[index * DIMENSION + index] = 1.0;
-    }
-    GaussianLinearBelief::new(&[0.0; DIMENSION], &covariance, DIMENSION)
-        .expect("identity Gaussian prior is valid")
+fn prior_covariance() -> [f64; DIMENSION * DIMENSION] {
+    [
+        2.0, 0.3, 0.0, 0.0,
+        0.3, 1.5, 0.2, 0.0,
+        0.0, 0.2, 1.0, 0.1,
+        0.0, 0.0, 0.1, 0.7,
+    ]
+}
+
+fn prior_belief() -> GaussianLinearBelief {
+    GaussianLinearBelief::new(&[0.0; DIMENSION], &prior_covariance(), DIMENSION)
+        .expect("correlated anisotropic Gaussian prior is valid")
 }
 
 fn candidates() -> Vec<Vec<f64>> {
@@ -71,7 +77,6 @@ fn candidates() -> Vec<Vec<f64>> {
         vec![0.0, 1.0, 0.0, 0.0],
         vec![0.0, 0.0, 1.0, 0.0],
         vec![0.0, 0.0, 0.0, 1.0],
-        vec![1.0, 1.0, 0.0, 0.0],
         vec![0.0, 1.0, 1.0, 0.0],
         vec![0.0, 0.0, 1.0, 1.0],
     ]
@@ -85,6 +90,19 @@ fn matvec(matrix: &[f64], vector: &[f64]) -> Vec<f64> {
                 .sum()
         })
         .collect()
+}
+
+fn sample_prior(rng: &mut DeterministicNormalRng) -> Vec<f64> {
+    let covariance = DMatrix::from_row_slice(DIMENSION, DIMENSION, &prior_covariance());
+    let lower = covariance
+        .cholesky()
+        .expect("prior covariance is positive definite")
+        .l();
+    let standard_normal = DVector::from_iterator(
+        DIMENSION,
+        (0..DIMENSION).map(|_| rng.standard_normal()),
+    );
+    (lower * standard_normal).iter().copied().collect()
 }
 
 fn functional_variance(c: &[f64], covariance: &[f64]) -> f64 {
@@ -120,7 +138,7 @@ fn covariance_greedy_selection_remains_calibrated_under_the_assumed_prior() {
     let reference_system =
         SpdLinearSystem::new(&matrix, &[0.0; DIMENSION], DIMENSION).expect("matrix is SPD");
     let reference = solver
-        .solve(&reference_system, &identity_belief(), &candidates())
+        .solve(&reference_system, &prior_belief(), &candidates())
         .expect("reference solve is valid");
     let reference_directions: Vec<Vec<f64>> = reference
         .steps()
@@ -128,12 +146,20 @@ fn covariance_greedy_selection_remains_calibrated_under_the_assumed_prior() {
         .map(|step| step.direction().to_vec())
         .collect();
 
+    assert_eq!(
+        reference_directions,
+        vec![
+            vec![1.0, 0.0, 0.0, 0.0],
+            vec![0.0, 1.0, 0.0, 0.0],
+        ]
+    );
+
     for _ in 0..REPLICATES {
-        let truth: Vec<f64> = (0..DIMENSION).map(|_| rng.standard_normal()).collect();
+        let truth = sample_prior(&mut rng);
         let rhs = matvec(&matrix, &truth);
         let system = SpdLinearSystem::new(&matrix, &rhs, DIMENSION).expect("system is SPD");
         let result = solver
-            .solve(&system, &identity_belief(), &candidates())
+            .solve(&system, &prior_belief(), &candidates())
             .expect("covariance-greedy solve should succeed");
         let directions: Vec<Vec<f64>> = result
             .steps()
