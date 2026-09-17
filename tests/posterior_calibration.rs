@@ -30,10 +30,10 @@ impl DeterministicNormalRng {
     }
 
     fn uniform_open_01(&mut self) -> f64 {
-        // Use the upper 53 bits to construct a value strictly inside (0, 1).
-        let mantissa = self.next_u64() >> 11;
-        let unit = (mantissa as f64 + 0.5) / ((1_u64 << 53) as f64);
-        unit.clamp(f64::MIN_POSITIVE, 1.0 - f64::EPSILON)
+        let upper_bits = u32::try_from(self.next_u64() >> 32).expect("upper bits fit in u32");
+        let numerator = f64::from(upper_bits) + 0.5;
+        let denominator = f64::from(u32::MAX) + 1.0;
+        numerator / denominator
     }
 
     fn standard_normal(&mut self) -> f64 {
@@ -149,8 +149,10 @@ fn posterior_intervals_are_calibrated_under_the_assumed_gp_prior() {
         }
     }
 
+    let total_u32 = u32::try_from(total).expect("replicate count fits in u32");
     for (index, target) in nominal_coverages.iter().enumerate() {
-        let empirical = covered[index] as f64 / total as f64;
+        let covered_u32 = u32::try_from(covered[index]).expect("coverage count fits in u32");
+        let empirical = f64::from(covered_u32) / f64::from(total_u32);
         assert!(
             (empirical - target.nominal).abs() <= COVERAGE_TOLERANCE,
             "nominal coverage {:.2} produced empirical coverage {:.4} over {total} replicates",
@@ -188,7 +190,8 @@ fn standardized_integral_errors_have_unit_second_moment() {
         squared_standardized_error_sum += standardized_error * standardized_error;
     }
 
-    let second_moment = squared_standardized_error_sum / replicates as f64;
+    let replicates_u32 = u32::try_from(replicates).expect("replicate count fits in u32");
+    let second_moment = squared_standardized_error_sum / f64::from(replicates_u32);
     assert!(
         (second_moment - 1.0).abs() <= 0.12,
         "standardized-error second moment should be near one, got {second_moment:.6}"
