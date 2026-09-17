@@ -125,9 +125,46 @@ Exit criterion: active Bayesian quadrature has a validated acquisition rule, det
 
 ## M4 — Broader probabilistic numerics
 
-Only after Bayesian quadrature is mature:
+### M4.1 Probabilistic linear solvers
 
-- [ ] probabilistic linear solvers;
+For an SPD system `A x = b`, represent uncertainty over the exact solution as
+
+\[
+x \sim \mathcal N(m, \Sigma).
+\]
+
+Given a noiseless linear observation along search direction `s`,
+
+\[
+s^\top A x = s^\top b,
+\]
+
+condition the Gaussian belief with
+
+\[
+h=A^\top s,
+\qquad
+m^+=m+\frac{\Sigma h}{h^\top\Sigma h}\left(s^\top b-h^\top m\right),
+\]
+
+\[
+\Sigma^+
+=
+\Sigma-\frac{(\Sigma h)(\Sigma h)^\top}{h^\top\Sigma h}.
+\]
+
+- [x] define a validated dense SPD linear-system contract;
+- [x] define a Gaussian solution belief with PSD covariance validation;
+- [x] implement exact noiseless projection conditioning;
+- [x] verify the conditioned projection is satisfied exactly within floating-point tolerance;
+- [x] verify uncertainty remains in uninformed directions after one projection;
+- [ ] define a principled iterative search-direction policy (BayesCG-style or equivalent);
+- [ ] connect iteration termination to posterior uncertainty rather than residual alone;
+- [ ] validate uncertainty calibration on synthetic SPD systems;
+- [ ] benchmark against classical conjugate gradients at equal matrix-vector budgets.
+
+### M4.2 Later methods
+
 - [ ] probabilistic ODE solvers;
 - [ ] uncertainty propagation between numerical subproblems;
 - [ ] PDE methods where the mathematical contract is sufficiently clear.
