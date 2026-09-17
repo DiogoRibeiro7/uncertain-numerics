@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Raised the minimum supported Rust version from 1.85 to 1.89, as required by nalgebra 0.35.
+- Updated `nalgebra` from 0.33 to 0.35. It is not part of the public API, so no user-visible behavior changes.
+
 ## [0.1.0] - 2026-09-17
 
 ### Added

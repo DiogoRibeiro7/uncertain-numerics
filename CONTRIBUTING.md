@@ -10,7 +10,7 @@ Thank you for considering a contribution. This project has a narrow goal: numeri
 
 ## Development setup
 
-You need a stable Rust toolchain at or above the minimum supported version (1.85) with `rustfmt` and `clippy` installed. There are no other build dependencies.
+You need a stable Rust toolchain at or above the minimum supported version (1.89) with `rustfmt` and `clippy` installed. There are no other build dependencies.
 
 ```sh
 git clone https://github.com/DiogoRibeiro7/uncertain-numerics.git

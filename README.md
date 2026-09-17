@@ -3,7 +3,7 @@
 [![CI](https://github.com/DiogoRibeiro7/uncertain-numerics/actions/workflows/ci.yml/badge.svg)](https://github.com/DiogoRibeiro7/uncertain-numerics/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/uncertain-numerics.svg)](https://crates.io/crates/uncertain-numerics)
 [![docs.rs](https://img.shields.io/docsrs/uncertain-numerics)](https://docs.rs/uncertain-numerics)
-[![MSRV](https://img.shields.io/badge/MSRV-1.85-blue.svg)](#minimum-supported-rust-version)
+[![MSRV](https://img.shields.io/badge/MSRV-1.89-blue.svg)](#minimum-supported-rust-version)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
 
 Probabilistic numerical methods in Rust, with explicit uncertainty over computational quantities.
@@ -17,7 +17,7 @@ Probabilistic numerical methods in Rust, with explicit uncertainty over computat
 - **Probabilistic linear solvers** for dense symmetric positive-definite systems: exact projection conditioning of a Gaussian solution belief with residual-driven, A-conjugate, and covariance-greedy search policies.
 - **Auditable numerics**: Cholesky solves instead of explicit inverses, jitter as a visible parameter that is never escalated silently, and typed errors instead of `NaN` for every invalid input.
 - **Scientific validation shipped as tests**: analytic fixtures, independent deterministic quadrature, coverage and calibration studies, misspecification and numerical-stability regressions.
-- **Small footprint**: one dependency (`nalgebra`), `unsafe` forbidden, MSRV 1.85.
+- **Small footprint**: one dependency (`nalgebra`), `unsafe` forbidden, MSRV 1.89.
 
 ## Installation
 
@@ -266,7 +266,7 @@ The project will not become a general machine-learning framework, Gaussian-proce
 
 ## Minimum supported Rust version
 
-The MSRV is Rust 1.85 (edition 2024). It is checked in CI, and raising it is treated as at least a minor version bump.
+The MSRV is Rust 1.89 (edition 2024). It is checked in CI, and raising it is treated as at least a minor version bump.
 
 ## Contributing
 

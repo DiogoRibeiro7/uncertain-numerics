@@ -8,12 +8,6 @@ all-features = true
 [advisories]
 version = 2
 yanked = "deny"
-ignore = [
-    # `paste` is unmaintained but has no known vulnerability. It is reached only
-    # through nalgebra -> simba, and no safe upgrade exists yet. Revisit whenever
-    # nalgebra is bumped.
-    { id = "RUSTSEC-2024-0436", reason = "unmaintained transitive dependency (paste) via nalgebra/simba; no fix available" },
-]
 
 [licenses]
 version = 2
