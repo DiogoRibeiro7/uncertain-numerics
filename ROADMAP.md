@@ -71,10 +71,12 @@ and
 = \kappa-z^\top K^{-1}z.
 \]
 
-- [ ] expose a stable `BayesianQuadrature` API;
-- [ ] distinguish prior mean assumptions from kernel assumptions;
-- [ ] return posterior uncertainty as a first-class result;
-- [ ] prevent small negative variances caused by numerical roundoff from becoming hidden semantic errors.
+- [x] expose the first `BayesianQuadrature` API for the RBF/Gaussian pair;
+- [x] make the zero prior-mean assumption explicit rather than implicit;
+- [x] return posterior uncertainty as a first-class `ScalarNormalPosterior`;
+- [x] clamp only machine-scale negative posterior variance to zero and reject materially negative values;
+- [ ] generalize prior-mean support beyond zero mean;
+- [ ] generalize orchestration across additional analytically integrated kernel/measure pairs.
 
 Exit criterion: end-to-end Bayesian quadrature for at least one analytically integrated kernel/measure pair.
 
