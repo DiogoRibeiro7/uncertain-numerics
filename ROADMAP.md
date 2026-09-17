@@ -86,10 +86,10 @@ Exit criterion: end-to-end Bayesian quadrature for at least one analytically int
 - [x] independent deterministic Simpson quadrature comparisons for the initial fixture set;
 - [x] deterministic simulation study of 50%, 80%, and 95% posterior interval coverage under the assumed GP prior;
 - [x] verify the standardized integral error has approximately unit second moment under the assumed GP prior;
-- [ ] study calibration under kernel or function-class misspecification;
-- [ ] sensitivity to node placement and kernel hyperparameters;
+- [x] study deterministic misspecification with oscillatory, polynomial, and narrow-local-feature integrands;
+- [x] demonstrate sensitivity to RBF length scale and node placement;
 - [ ] numerical-stability stress tests;
-- [ ] document failure modes where posterior uncertainty is miscalibrated.
+- [x] document concrete failure modes where posterior uncertainty becomes overconfident under misspecification.
 
 Exit criterion: the library demonstrates not only numerical accuracy but also whether its uncertainty statements are empirically calibrated.
 
