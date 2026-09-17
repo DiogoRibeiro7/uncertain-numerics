@@ -1,6 +1,7 @@
 # Tag-driven release: pushing `vX.Y.Z` verifies the tag against Cargo.toml, runs the
 # test suite, publishes to crates.io through trusted publishing, and creates a GitHub
-# release whose notes are the matching CHANGELOG.md section.
+# release whose notes are the matching CHANGELOG.md section (extracted with a
+# small Python step; awk escaping proved fragile).
 # If the version is already on crates.io (for example after a manual first publish),
 # the publish job is skipped and only the GitHub release is created.
 # One-time setup is described in docs/RELEASING.md.
@@ -93,16 +94,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Extract the changelog section for this version
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          awk -v ver="$version" '
-            $0 ~ "^## \[" ver "\]" { grab = 1; next }
-            grab && /^## \[/ { exit }
-            grab { print }
-          ' CHANGELOG.md > release-notes.md
-          if [ ! -s release-notes.md ]; then
-            echo "No CHANGELOG.md section found for $version." > release-notes.md
-          fi
+          python3 - <<'PY'
+          import os
+          version = os.environ["TAG"].removeprefix("v")
+          notes, grab = [], False
+          for line in open("CHANGELOG.md", encoding="utf-8").read().splitlines():
+              if line.startswith("## "):
+                  if grab:
+                      break
+                  grab = line.startswith("## [" + version + "]")
+                  continue
+              if grab:
+                  notes.append(line)
+          text = chr(10).join(notes).strip()
+          if not text:
+              text = "No CHANGELOG.md section found for " + version + "."
+          open("release-notes.md", "w", encoding="utf-8").write(text + chr(10))
+          PY
       - uses: softprops/action-gh-release@v2
         with:
           body_path: release-notes.md
