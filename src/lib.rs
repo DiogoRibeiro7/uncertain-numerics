@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 
+mod active;
 mod bayesian_quadrature;
 mod bayesian_quadrature_error;
 mod conditioning;
@@ -13,6 +14,7 @@ mod measure;
 mod measure_error;
 mod posterior;
 
+pub use active::VarianceReductionAcquisition;
 pub use bayesian_quadrature::BayesianQuadrature;
 pub use bayesian_quadrature_error::BayesianQuadratureError;
 pub use conditioning::GaussianConditioner;
