@@ -153,13 +153,23 @@ m^+=m+\frac{\Sigma h}{h^\top\Sigma h}\left(s^\top b-h^\top m\right),
 \Sigma-\frac{(\Sigma h)(\Sigma h)^\top}{h^\top\Sigma h}.
 \]
 
+The first iterative policy uses the current normalized residual as the next search direction,
+
+\[
+s_k = \frac{b-Am_k}{\|b-Am_k\|_2},
+\]
+
+and treats posterior covariance trace as an uncertainty diagnostic distinct from residual norm.
+
 - [x] define a validated dense SPD linear-system contract;
 - [x] define a Gaussian solution belief with PSD covariance validation;
 - [x] implement exact noiseless projection conditioning;
 - [x] verify the conditioned projection is satisfied exactly within floating-point tolerance;
 - [x] verify uncertainty remains in uninformed directions after one projection;
-- [ ] define a principled iterative search-direction policy (BayesCG-style or equivalent);
-- [ ] connect iteration termination to posterior uncertainty rather than residual alone;
+- [x] implement a residual-driven iterative projection policy;
+- [x] support stopping by residual tolerance, covariance-trace tolerance, iteration budget, or lack of an informative direction;
+- [x] verify covariance trace is non-increasing while residual norm need not be;
+- [ ] implement an explicitly conjugate BayesCG-style search policy and compare it with the residual-driven baseline;
 - [ ] validate uncertainty calibration on synthetic SPD systems;
 - [ ] benchmark against classical conjugate gradients at equal matrix-vector budgets.
 
