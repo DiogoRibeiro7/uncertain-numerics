@@ -6,8 +6,8 @@
 
 - [x] establish crate identity and scope;
 - [x] add a validated scalar Gaussian posterior type;
-- [ ] add CI for formatting, linting, tests, and documentation;
-- [ ] choose and document the project license before publication;
+- [x] add CI for formatting, linting, tests, and documentation;
+- [x] choose and document the project license before publication;
 - [ ] verify crates.io package-name availability immediately before release.
 
 Exit criterion: a dependency-light crate with explicit invariants and a clean public API baseline.
