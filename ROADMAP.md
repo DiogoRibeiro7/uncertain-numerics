@@ -161,6 +161,19 @@ s_k = \frac{b-Am_k}{\|b-Am_k\|_2},
 
 and treats posterior covariance trace as an uncertainty diagnostic distinct from residual norm.
 
+The second policy starts from the current residual and explicitly orthogonalizes it against all previous search directions in the SPD matrix inner product
+
+\[
+\langle u,v\rangle_A = u^\top A v,
+\]
+
+so the retained search directions satisfy
+
+\[
+s_i^\top A s_j \approx 0,
+\qquad i\ne j.
+\]
+
 - [x] define a validated dense SPD linear-system contract;
 - [x] define a Gaussian solution belief with PSD covariance validation;
 - [x] implement exact noiseless projection conditioning;
@@ -169,7 +182,9 @@ and treats posterior covariance trace as an uncertainty diagnostic distinct from
 - [x] implement a residual-driven iterative projection policy;
 - [x] support stopping by residual tolerance, covariance-trace tolerance, iteration budget, or lack of an informative direction;
 - [x] verify covariance trace is non-increasing while residual norm need not be;
-- [ ] implement an explicitly conjugate BayesCG-style search policy and compare it with the residual-driven baseline;
+- [x] implement an explicitly A-conjugate residual-orthogonalization policy;
+- [x] verify pairwise A-conjugacy numerically and retain uncertainty-based stopping semantics;
+- [ ] compare the A-conjugate and residual-driven probabilistic policies at equal projection budgets;
 - [ ] validate uncertainty calibration on synthetic SPD systems;
 - [ ] benchmark against classical conjugate gradients at equal matrix-vector budgets.
 
