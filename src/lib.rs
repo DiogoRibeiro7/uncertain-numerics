@@ -1,6 +1,8 @@
 #![doc = include_str!("../README.md")]
 
 mod active;
+mod active_design;
+mod active_design_error;
 mod active_error;
 mod bayesian_quadrature;
 mod bayesian_quadrature_error;
@@ -16,6 +18,10 @@ mod measure_error;
 mod posterior;
 
 pub use active::{SelectedCandidate, VarianceReductionAcquisition};
+pub use active_design::{
+    ActiveBayesianQuadrature, ActiveDesignResult, ActiveDesignStep, ActiveTermination,
+};
+pub use active_design_error::ActiveDesignError;
 pub use active_error::ActiveSelectionError;
 pub use bayesian_quadrature::BayesianQuadrature;
 pub use bayesian_quadrature_error::BayesianQuadratureError;
