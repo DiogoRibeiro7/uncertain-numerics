@@ -13,6 +13,10 @@ pub enum LinearSolverError {
     NonFiniteMatrixEntry,
     /// At least one vector entry is not finite.
     NonFiniteVectorEntry,
+    /// A solver tolerance is not finite.
+    NonFiniteTolerance,
+    /// A solver tolerance is negative.
+    NegativeTolerance,
     /// The system matrix is not symmetric within numerical tolerance.
     NonSymmetricSystemMatrix,
     /// The system matrix is not positive definite.
@@ -33,6 +37,8 @@ impl fmt::Display for LinearSolverError {
             Self::VectorDimensionMismatch => write!(f, "vector length must equal the system dimension"),
             Self::NonFiniteMatrixEntry => write!(f, "matrix entries must be finite"),
             Self::NonFiniteVectorEntry => write!(f, "vector entries must be finite"),
+            Self::NonFiniteTolerance => write!(f, "solver tolerances must be finite"),
+            Self::NegativeTolerance => write!(f, "solver tolerances must be non-negative"),
             Self::NonSymmetricSystemMatrix => write!(f, "system matrix must be symmetric"),
             Self::SystemMatrixNotPositiveDefinite => write!(f, "system matrix must be positive definite"),
             Self::NonSymmetricCovariance => write!(f, "covariance matrix must be symmetric"),
