@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 
+mod a_conjugate_solver;
 mod active;
 mod active_design;
 mod active_design_error;
@@ -21,6 +22,9 @@ mod measure_error;
 mod posterior;
 mod probabilistic_linear_solver;
 
+pub use a_conjugate_solver::{
+    AConjugateLinearSolveResult, AConjugateLinearSolveStep, AConjugateProjectionSolver,
+};
 pub use active::{SelectedCandidate, VarianceReductionAcquisition};
 pub use active_design::{
     ActiveBayesianQuadrature, ActiveDesignResult, ActiveDesignStep, ActiveTermination,
