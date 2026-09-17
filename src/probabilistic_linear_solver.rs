@@ -240,11 +240,42 @@ mod tests {
     #[test]
     fn covariance_trace_is_non_increasing() {
         let system = SpdLinearSystem::new(
-            &[1.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 10.0, 0.0],
+            &[1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 10.0],
             &[1.0, 2.0, -1.0],
             3,
+        )
+        .expect("system is valid");
+        let solver = ResidualProjectionSolver::new(0.0, 0.0, 3).expect("solver is valid");
+        let result = solver
+            .solve(&system, &identity_belief(3))
+            .expect("solve should succeed");
+
+        let mut previous = 3.0;
+        for step in result.steps() {
+            assert!(step.covariance_trace_after() <= previous + 1.0e-12);
+            previous = step.covariance_trace_after();
+        }
+    }
+
+    #[test]
+    fn residual_norm_need_not_be_monotone() {
+        let system = SpdLinearSystem::new(
+            &[1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 10.0],
+            &[1.0, 2.0, -1.0],
+            3,
+        )
+        .expect("system is valid");
+        let solver = ResidualProjectionSolver::new(0.0, 0.0, 3).expect("solver is valid");
+        let result = solver
+            .solve(&system, &identity_belief(3))
+            .expect("solve should succeed");
+
+        assert!(
+            result
+                .steps()
+                .iter()
+                .any(|step| step.residual_norm_after() > step.residual_norm_before())
         );
-        assert!(system.is_err(), "fixture matrix layout should be corrected below");
     }
 
     #[test]
