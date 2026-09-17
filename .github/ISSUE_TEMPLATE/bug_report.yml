@@ -1,0 +1,38 @@
+name: Bug report
+description: Incorrect results, unexpected errors, numerical instability, or a build failure.
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: A small Rust snippet or test that shows the problem. Include exact inputs (nodes, values, hyperparameters, jitter).
+      render: rust
+    validations:
+      required: true
+  - type: textarea
+    id: numbers
+    attributes:
+      label: Observed vs expected values
+      description: For numerical issues, give the observed output, the reference value, and how the reference was obtained.
+  - type: input
+    id: version
+    attributes:
+      label: Crate version or commit
+      placeholder: "0.1.0 / 7730cef"
+    validations:
+      required: true
+  - type: input
+    id: toolchain
+    attributes:
+      label: Rust toolchain and platform
+      placeholder: "rustc 1.85.0, Windows 11 x86_64"
+    validations:
+      required: true
