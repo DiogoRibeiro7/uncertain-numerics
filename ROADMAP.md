@@ -174,6 +174,8 @@ s_i^\top A s_j \approx 0,
 \qquad i\ne j.
 \]
 
+Under exact noiseless Gaussian conditioning, subtracting combinations of previously observed directions changes the basis but not the cumulative observation subspace. Therefore, when the residual-driven and A-conjugate policies perform the same number of informative projections and span the same information subspace, their posterior means and covariances should agree up to floating-point error even though the individual search directions differ.
+
 - [x] define a validated dense SPD linear-system contract;
 - [x] define a Gaussian solution belief with PSD covariance validation;
 - [x] implement exact noiseless projection conditioning;
@@ -184,7 +186,8 @@ s_i^\top A s_j \approx 0,
 - [x] verify covariance trace is non-increasing while residual norm need not be;
 - [x] implement an explicitly A-conjugate residual-orthogonalization policy;
 - [x] verify pairwise A-conjugacy numerically and retain uncertainty-based stopping semantics;
-- [ ] compare the A-conjugate and residual-driven probabilistic policies at equal projection budgets;
+- [x] verify residual and A-conjugate bases produce equivalent Gaussian posteriors at equal informative projection budgets;
+- [x] document the basis-invariance explanation and cases where equivalence can break;
 - [ ] validate uncertainty calibration on synthetic SPD systems;
 - [ ] benchmark against classical conjugate gradients at equal matrix-vector budgets.
 
