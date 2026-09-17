@@ -3,18 +3,36 @@ name = "uncertain-numerics"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
+authors = ["Diogo Ribeiro"]
 description = "Probabilistic numerical methods with explicit uncertainty over computational quantities."
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/DiogoRibeiro7/uncertain-numerics"
+homepage = "https://github.com/DiogoRibeiro7/uncertain-numerics"
+documentation = "https://docs.rs/uncertain-numerics"
 readme = "README.md"
 keywords = ["probabilistic-numerics", "bayesian-quadrature", "numerical-analysis", "uncertainty"]
 categories = ["mathematics", "science"]
+exclude = [
+    "/.github/",
+    "/.benchmarks/",
+    "/.editorconfig",
+    "/.gitattributes",
+    "/.gitignore",
+    "/deny.toml",
+    "/rustfmt.toml",
+]
+
+[package.metadata.docs.rs]
+all-features = true
 
 [dependencies]
 nalgebra = "0.33.2"
 
 [lints.rust]
 unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
 
 [lints.clippy]
-all = "warn"
-pedantic = "warn"
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
