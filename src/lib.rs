@@ -19,6 +19,7 @@ mod linear_system;
 mod measure;
 mod measure_error;
 mod posterior;
+mod probabilistic_linear_solver;
 
 pub use active::{SelectedCandidate, VarianceReductionAcquisition};
 pub use active_design::{
@@ -41,3 +42,7 @@ pub use linear_system::SpdLinearSystem;
 pub use measure::{ContinuousProbabilityMeasure, GaussianMeasure};
 pub use measure_error::MeasureError;
 pub use posterior::ScalarNormalPosterior;
+pub use probabilistic_linear_solver::{
+    LinearSolveStep, LinearSolveTermination, ProbabilisticLinearSolveResult,
+    ResidualProjectionSolver,
+};
