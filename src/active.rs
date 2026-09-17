@@ -1,24 +1,39 @@
 //! Active Bayesian quadrature acquisition based on posterior integral-variance reduction.
 
 use crate::{
-    BayesianQuadratureError, GaussianConditioner, GaussianMeasure, KernelMean, RbfKernel,
-    ScalarKernel,
+    ActiveSelectionError, BayesianQuadratureError, GaussianConditioner, GaussianMeasure,
+    KernelMean, RbfKernel, ScalarKernel,
 };
 
+/// Candidate selected by posterior integral-variance reduction.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SelectedCandidate {
+    point: f64,
+    variance_reduction: f64,
+    index: usize,
+}
+
+impl SelectedCandidate {
+    /// Return the selected candidate location.
+    #[must_use]
+    pub const fn point(self) -> f64 {
+        self.point
+    }
+
+    /// Return the predicted posterior integral-variance reduction.
+    #[must_use]
+    pub const fn variance_reduction(self) -> f64 {
+        self.variance_reduction
+    }
+
+    /// Return the selected candidate index in the supplied candidate slice.
+    #[must_use]
+    pub const fn index(self) -> usize {
+        self.index
+    }
+}
+
 /// Expected reduction in posterior integral variance from evaluating one candidate node.
-///
-/// For current observation nodes `X`, candidate `x_star`, regularized Gram matrix
-/// `A = K + jitter * I`, kernel vector `k_star`, and kernel-mean vector `z`,
-///
-/// ```text
-/// delta(x_star)
-/// = (z_star - k_star^T A^(-1) z)^2
-///   / (k(x_star, x_star) + jitter - k_star^T A^(-1) k_star).
-/// ```
-///
-/// The quantity is independent of observed function values. It depends only on
-/// the kernel, integration measure, existing node locations, candidate location,
-/// and explicit jitter policy.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct VarianceReductionAcquisition {
     kernel: RbfKernel,
@@ -56,12 +71,6 @@ impl VarianceReductionAcquisition {
     }
 
     /// Evaluate the posterior integral-variance reduction at `candidate`.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`BayesianQuadratureError`] when the current node set is empty or
-    /// contains non-finite values, when the candidate is non-finite, or when the
-    /// regularized Gram matrix cannot be conditioned.
     pub fn reduction(
         &self,
         nodes: &[f64],
@@ -72,6 +81,68 @@ impl VarianceReductionAcquisition {
             return Err(BayesianQuadratureError::NonFiniteObservationNode);
         }
 
+        let (conditioner, solved_mean) = self.prepare(nodes)?;
+        self.reduction_with_prepared(nodes, candidate, &conditioner, &solved_mean)
+    }
+
+    /// Select the candidate with the largest predicted variance reduction.
+    ///
+    /// Ties are resolved deterministically by keeping the first maximum in the
+    /// supplied candidate slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ActiveSelectionError`] for empty/non-finite candidate sets or
+    /// when acquisition evaluation fails for the current design.
+    pub fn select_best(
+        &self,
+        nodes: &[f64],
+        candidates: &[f64],
+    ) -> Result<SelectedCandidate, ActiveSelectionError> {
+        if candidates.is_empty() {
+            return Err(ActiveSelectionError::EmptyCandidates);
+        }
+        if candidates.iter().any(|candidate| !candidate.is_finite()) {
+            return Err(ActiveSelectionError::NonFiniteCandidate);
+        }
+
+        validate_nodes(nodes)?;
+        let (conditioner, solved_mean) = self.prepare(nodes)?;
+
+        let mut best = SelectedCandidate {
+            point: candidates[0],
+            variance_reduction: self.reduction_with_prepared(
+                nodes,
+                candidates[0],
+                &conditioner,
+                &solved_mean,
+            )?,
+            index: 0,
+        };
+
+        for (index, &candidate) in candidates.iter().enumerate().skip(1) {
+            let reduction = self.reduction_with_prepared(
+                nodes,
+                candidate,
+                &conditioner,
+                &solved_mean,
+            )?;
+            if reduction > best.variance_reduction {
+                best = SelectedCandidate {
+                    point: candidate,
+                    variance_reduction: reduction,
+                    index,
+                };
+            }
+        }
+
+        Ok(best)
+    }
+
+    fn prepare(
+        &self,
+        nodes: &[f64],
+    ) -> Result<(GaussianConditioner, Vec<f64>), BayesianQuadratureError> {
         let dimension = nodes.len();
         let mut gram = Vec::with_capacity(dimension * dimension);
         for &left in nodes {
@@ -84,17 +155,26 @@ impl VarianceReductionAcquisition {
             .iter()
             .map(|&node| self.kernel.kernel_mean(&self.measure, node))
             .collect();
+        let conditioner = GaussianConditioner::new(&gram, dimension, self.jitter)?;
+        let solved_mean = conditioner.solve(&kernel_mean)?;
+        Ok((conditioner, solved_mean))
+    }
+
+    fn reduction_with_prepared(
+        &self,
+        nodes: &[f64],
+        candidate: f64,
+        conditioner: &GaussianConditioner,
+        solved_mean: &[f64],
+    ) -> Result<f64, BayesianQuadratureError> {
         let candidate_covariance: Vec<f64> = nodes
             .iter()
             .map(|&node| self.kernel.covariance(node, candidate))
             .collect();
-
-        let conditioner = GaussianConditioner::new(&gram, dimension, self.jitter)?;
-        let solved_mean = conditioner.solve(&kernel_mean)?;
         let solved_candidate = conditioner.solve(&candidate_covariance)?;
 
         let posterior_integral_covariance = self.kernel.kernel_mean(&self.measure, candidate)
-            - dot(&candidate_covariance, &solved_mean);
+            - dot(&candidate_covariance, solved_mean);
         let predictive_variance = self.kernel.covariance(candidate, candidate) + self.jitter
             - dot(&candidate_covariance, &solved_candidate);
 
@@ -128,7 +208,7 @@ fn dot(left: &[f64], right: &[f64]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::VarianceReductionAcquisition;
-    use crate::{BayesianQuadrature, GaussianMeasure, RbfKernel};
+    use crate::{ActiveSelectionError, BayesianQuadrature, GaussianMeasure, RbfKernel};
 
     const TOLERANCE: f64 = 1.0e-11;
 
@@ -142,24 +222,15 @@ mod tests {
     fn reduction_is_non_negative() {
         let acquisition = fixture();
         let nodes = [-1.0, 0.0, 1.0];
-
         for candidate in [-2.0, -0.4, 0.5, 1.7] {
-            let reduction = acquisition
-                .reduction(&nodes, candidate)
-                .expect("candidate should be valid");
-            assert!(reduction >= 0.0);
+            assert!(acquisition.reduction(&nodes, candidate).expect("valid") >= 0.0);
         }
     }
 
     #[test]
     fn existing_node_has_negligible_reduction() {
         let acquisition = fixture();
-        let nodes = [-1.0, 0.0, 1.0];
-
-        let reduction = acquisition
-            .reduction(&nodes, 0.0)
-            .expect("candidate should be valid");
-
+        let reduction = acquisition.reduction(&[-1.0, 0.0, 1.0], 0.0).expect("valid");
         assert!(reduction <= 1.0e-10);
     }
 
@@ -169,55 +240,55 @@ mod tests {
         let nodes = [-1.25, -0.1, 1.1];
         let values = [0.4, -0.3, 0.8];
         let candidate = 0.55;
-        let candidate_value = -0.2;
-
         let quadrature = BayesianQuadrature::new(
             acquisition.kernel(),
             acquisition.measure(),
             acquisition.jitter(),
         );
-        let before = quadrature
-            .posterior(&nodes, &values)
-            .expect("current posterior should be valid");
-
+        let before = quadrature.posterior(&nodes, &values).expect("valid");
         let mut augmented_nodes = nodes.to_vec();
         augmented_nodes.push(candidate);
         let mut augmented_values = values.to_vec();
-        augmented_values.push(candidate_value);
+        augmented_values.push(-0.2);
         let after = quadrature
             .posterior(&augmented_nodes, &augmented_values)
-            .expect("augmented posterior should be valid");
-
-        let predicted_drop = acquisition
-            .reduction(&nodes, candidate)
-            .expect("candidate should be valid");
-        let actual_drop = before.variance() - after.variance();
-
-        assert!((predicted_drop - actual_drop).abs() <= TOLERANCE);
+            .expect("valid");
+        let predicted_drop = acquisition.reduction(&nodes, candidate).expect("valid");
+        assert!((predicted_drop - (before.variance() - after.variance())).abs() <= TOLERANCE);
     }
 
     #[test]
-    fn reduction_does_not_depend_on_observed_values() {
+    fn selector_returns_global_candidate_maximum() {
         let acquisition = fixture();
         let nodes = [-1.0, 0.0, 1.0];
-        let candidate = 0.35;
-
-        let first = acquisition
-            .reduction(&nodes, candidate)
-            .expect("candidate should be valid");
-        let second = acquisition
-            .reduction(&nodes, candidate)
-            .expect("candidate should be valid");
-
-        assert_eq!(first, second);
+        let candidates = [-2.0, -0.6, 0.4, 1.8];
+        let selected = acquisition.select_best(&nodes, &candidates).expect("valid");
+        for &candidate in &candidates {
+            let reduction = acquisition.reduction(&nodes, candidate).expect("valid");
+            assert!(selected.variance_reduction() + TOLERANCE >= reduction);
+        }
+        assert_eq!(selected.point(), candidates[selected.index()]);
     }
 
     #[test]
-    fn rejects_invalid_node_contracts() {
+    fn selector_uses_first_maximum_for_ties() {
         let acquisition = fixture();
+        let nodes = [-1.0, 0.0, 1.0];
+        let candidates = [0.0, 0.0, 0.0];
+        let selected = acquisition.select_best(&nodes, &candidates).expect("valid");
+        assert_eq!(selected.index(), 0);
+    }
 
-        assert!(acquisition.reduction(&[], 0.0).is_err());
-        assert!(acquisition.reduction(&[f64::NAN], 0.0).is_err());
-        assert!(acquisition.reduction(&[0.0], f64::INFINITY).is_err());
+    #[test]
+    fn selector_rejects_invalid_candidate_sets() {
+        let acquisition = fixture();
+        assert_eq!(
+            acquisition.select_best(&[-1.0, 0.0, 1.0], &[]),
+            Err(ActiveSelectionError::EmptyCandidates)
+        );
+        assert_eq!(
+            acquisition.select_best(&[-1.0, 0.0, 1.0], &[0.5, f64::NAN]),
+            Err(ActiveSelectionError::NonFiniteCandidate)
+        );
     }
 }
