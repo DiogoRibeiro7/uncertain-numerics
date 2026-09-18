@@ -91,11 +91,20 @@ impl GaussianLinearBelief {
 
     /// Condition the solution belief on one exact projection `s^T A x = s^T b`.
     ///
+    /// The updated covariance is symmetrized, and eigenvalues that are negative
+    /// by no more than `128 ε` times the largest entry of the pre-update
+    /// covariance are clipped to zero. This is the covariance analogue of the
+    /// posterior-variance policy in Bayesian quadrature: roundoff is absorbed,
+    /// anything material is an error. Without the clip, repeated conditioning
+    /// on a moderately conditioned system drifts into an indefinite covariance
+    /// after a handful of projections.
+    ///
     /// # Errors
     ///
     /// Returns [`LinearSolverError`] when dimensions are inconsistent, the search
-    /// direction is non-finite, or the requested projection has no remaining
-    /// uncertainty under the current covariance.
+    /// direction is non-finite, the requested projection has no remaining
+    /// uncertainty under the current covariance, or the updated covariance is
+    /// negative beyond roundoff.
     pub fn condition_on_projection(
         &self,
         system: &SpdLinearSystem,
@@ -133,18 +142,46 @@ impl GaussianLinearBelief {
         let updated_mean = mean + &gain * innovation;
         let updated_covariance = covariance
             - (&covariance_observation * covariance_observation.transpose()) / observation_variance;
+        let symmetric = symmetrize(&updated_covariance);
+
+        // The rank-one downdate is not self-correcting: feeding a slightly
+        // indefinite covariance into the next update amplifies the defect, and
+        // after a handful of projections on a moderately conditioned system the
+        // most negative eigenvalue exceeds any fixed tolerance. Clipping
+        // roundoff-scale negative eigenvalues to zero keeps every stored
+        // covariance exactly positive semidefinite and the recurrence stable.
+        // Anything more negative than roundoff relative to the pre-update scale
+        // is a genuine breakdown and is reported rather than hidden.
+        let eigen = SymmetricEigen::new(symmetric);
+        if eigen.eigenvalues.iter().any(|value| *value < -tolerance) {
+            return Err(LinearSolverError::CovarianceNotPositiveSemidefinite);
+        }
+        let clipped = eigen.eigenvalues.map(|value| value.max(0.0));
+        let repaired = symmetrize(
+            &(&eigen.eigenvectors
+                * DMatrix::from_diagonal(&clipped)
+                * eigen.eigenvectors.transpose()),
+        );
 
         let mut covariance_flat = Vec::with_capacity(dimension * dimension);
         for row in 0..dimension {
             for column in 0..dimension {
-                let symmetric_value =
-                    updated_covariance[(row, column)].midpoint(updated_covariance[(column, row)]);
-                covariance_flat.push(symmetric_value);
+                covariance_flat.push(repaired[(row, column)]);
             }
         }
 
         Self::new(updated_mean.as_slice(), &covariance_flat, dimension)
     }
+}
+
+fn symmetrize(matrix: &DMatrix<f64>) -> DMatrix<f64> {
+    let mut symmetric = matrix.clone();
+    for row in 0..matrix.nrows() {
+        for column in 0..matrix.ncols() {
+            symmetric[(row, column)] = matrix[(row, column)].midpoint(matrix[(column, row)]);
+        }
+    }
+    symmetric
 }
 
 #[cfg(test)]
@@ -218,6 +255,71 @@ mod tests {
         assert_eq!(
             updated.condition_on_projection(&system, &[1.0, 0.0]),
             Err(LinearSolverError::DegenerateObservation)
+        );
+    }
+
+    #[test]
+    fn repeated_conditioning_stays_positive_semidefinite_on_graded_system() {
+        // Log-spaced diagonal from 1 to 100 plus a rank-one coupling, condition
+        // number about 92. Before eigenvalue clipping, the eighth residual
+        // projection produced a covariance whose most negative eigenvalue was
+        // about -3e-14, beyond the roundoff tolerance, and conditioning failed.
+        const DIMENSION: usize = 8;
+        let mut matrix = vec![0.1; DIMENSION * DIMENSION];
+        for index in 0..DIMENSION {
+            let exponent = 2.0 * f64::from(u8::try_from(index).expect("small index")) / 7.0;
+            matrix[index * DIMENSION + index] += 10.0_f64.powf(exponent);
+        }
+        let rhs: Vec<f64> = (0..DIMENSION)
+            .map(|index| if index % 2 == 0 { 1.0 } else { -1.0 })
+            .collect();
+        let system = SpdLinearSystem::new(&matrix, &rhs, DIMENSION).expect("system is SPD");
+        let mut identity = vec![0.0; DIMENSION * DIMENSION];
+        for index in 0..DIMENSION {
+            identity[index * DIMENSION + index] = 1.0;
+        }
+        let mut belief = GaussianLinearBelief::new(&[0.0; DIMENSION], &identity, DIMENSION)
+            .expect("belief is valid");
+
+        for projection in 0..DIMENSION {
+            let mean = belief.mean();
+            let residual: Vec<f64> = (0..DIMENSION)
+                .map(|row| {
+                    rhs[row]
+                        - (0..DIMENSION)
+                            .map(|column| matrix[row * DIMENSION + column] * mean[column])
+                            .sum::<f64>()
+                })
+                .collect();
+            let norm = residual
+                .iter()
+                .map(|value| value * value)
+                .sum::<f64>()
+                .sqrt();
+            let direction: Vec<f64> = residual.iter().map(|value| value / norm).collect();
+            belief = belief
+                .condition_on_projection(&system, &direction)
+                .unwrap_or_else(|error| panic!("projection {projection} failed: {error}"));
+
+            let eigenvalues = nalgebra::SymmetricEigen::new(nalgebra::DMatrix::from_row_slice(
+                DIMENSION,
+                DIMENSION,
+                belief.covariance(),
+            ))
+            .eigenvalues;
+            assert!(
+                eigenvalues.min() >= -1.0e-15,
+                "projection {projection}: most negative eigenvalue {:.3e}",
+                eigenvalues.min()
+            );
+        }
+
+        let trace: f64 = (0..DIMENSION)
+            .map(|index| belief.covariance()[index * DIMENSION + index])
+            .sum();
+        assert!(
+            (0.0..=1.0e-12).contains(&trace),
+            "eight informative projections should exhaust the covariance, trace {trace:.3e}"
         );
     }
 }
