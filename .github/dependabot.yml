@@ -13,6 +13,6 @@ updates:
     schedule:
       interval: weekly
     ignore:
-      # `dtolnay/rust-toolchain@1.89` pins the MSRV toolchain, and `@stable` is a
-      # moving ref. Neither is an action version, so Dependabot must not bump them.
+      # This action is referenced by moving refs (`@stable`, `@master`) and the MSRV
+      # job passes the version as an input, so there is nothing for Dependabot to bump.
       - dependency-name: dtolnay/rust-toolchain
