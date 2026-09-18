@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `PriorMean` trait with `ZeroMean`, `ConstantMean`, and `AffineMean`, and `BayesianQuadrature::with_prior_mean` for Gaussian-process priors with a non-zero mean. `BayesianQuadrature` and `ActiveBayesianQuadrature` gained a type parameter that defaults to `ZeroMean`, so existing code is unaffected.
 - Equal-budget benchmark of the residual and A-conjugate projection solvers against classical conjugate gradients, with the proof and numerical check that the identity-prior posterior mean coincides with Craig's method (`docs/conjugate-gradient-benchmark.md`).
 
 ### Changed
 
+- `ActiveBayesianQuadrature::quadrature` now returns a reference instead of a copy, so the configuration no longer needs to be `Copy`.
 - Raised the minimum supported Rust version from 1.85 to 1.89, as required by nalgebra 0.35.
 - Updated `nalgebra` from 0.33 to 0.35. It is not part of the public API, so no user-visible behavior changes.
 
