@@ -75,7 +75,7 @@ and
 - [x] make the zero prior-mean assumption explicit rather than implicit;
 - [x] return posterior uncertainty as a first-class `ScalarNormalPosterior`;
 - [x] clamp only machine-scale negative posterior variance to zero and reject materially negative values;
-- [ ] generalize prior-mean support beyond zero mean;
+- [x] generalize prior-mean support beyond zero mean through the `PriorMean` contract, with constant and affine means;
 - [ ] generalize orchestration across additional analytically integrated kernel/measure pairs.
 
 Exit criterion: end-to-end Bayesian quadrature for at least one analytically integrated kernel/measure pair.

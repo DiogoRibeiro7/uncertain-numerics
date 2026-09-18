@@ -1,5 +1,6 @@
 use crate::{
-    ActiveDesignError, BayesianQuadrature, ScalarNormalPosterior, VarianceReductionAcquisition,
+    ActiveDesignError, BayesianQuadrature, GaussianMeasure, PriorMean, ScalarNormalPosterior,
+    VarianceReductionAcquisition, ZeroMean,
 };
 
 /// Reason a sequential active Bayesian-quadrature run terminated.
@@ -98,16 +99,20 @@ impl ActiveDesignResult {
 }
 
 /// Sequential active Bayesian quadrature over a finite candidate set.
+///
+/// The acquisition rule depends only on the kernel, measure, jitter, and node
+/// locations, so the prior mean of the underlying [`BayesianQuadrature`] affects
+/// the posterior mean reported at each step but never the points selected.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ActiveBayesianQuadrature {
-    quadrature: BayesianQuadrature,
+pub struct ActiveBayesianQuadrature<Mean = ZeroMean> {
+    quadrature: BayesianQuadrature<Mean>,
     acquisition: VarianceReductionAcquisition,
 }
 
-impl ActiveBayesianQuadrature {
+impl<Mean> ActiveBayesianQuadrature<Mean> {
     /// Construct active Bayesian quadrature from one consistent kernel/measure setup.
     #[must_use]
-    pub const fn new(quadrature: BayesianQuadrature) -> Self {
+    pub const fn new(quadrature: BayesianQuadrature<Mean>) -> Self {
         let acquisition = VarianceReductionAcquisition::new(
             quadrature.kernel(),
             quadrature.measure(),
@@ -121,10 +126,12 @@ impl ActiveBayesianQuadrature {
 
     /// Return the underlying Bayesian-quadrature configuration.
     #[must_use]
-    pub const fn quadrature(&self) -> BayesianQuadrature {
-        self.quadrature
+    pub const fn quadrature(&self) -> &BayesianQuadrature<Mean> {
+        &self.quadrature
     }
+}
 
+impl<Mean: PriorMean<GaussianMeasure>> ActiveBayesianQuadrature<Mean> {
     /// Run sequential active selection and function evaluation.
     ///
     /// The loop stops when the posterior integral variance is no greater than

@@ -260,7 +260,7 @@ The crate is pre-1.0. The public API is deliberately small while the mathematica
 
 Current limitations worth knowing before you depend on it:
 
-- Bayesian quadrature supports one dimension, the RBF kernel, a Gaussian measure, and a zero prior mean.
+- Bayesian quadrature supports one dimension, the RBF kernel, and a Gaussian measure. The prior mean can be zero, constant, or affine; other mean functions need an analytic integral under the measure.
 - Linear solvers operate on dense SPD systems and use dense covariance matrices, so they are meant for moderate dimensions.
 - Posterior uncertainty from the adaptive residual policies is conservative under repeated prior draws; use the covariance-greedy policy when calibration matters.
 - With the identity prior, the projection solvers are Craig's method in disguise: at equal matrix-vector budgets classical conjugate gradients is far more accurate. Use them for the posterior covariance, not for speed. See the benchmark note in the documentation list.

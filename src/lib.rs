@@ -12,7 +12,7 @@
 //!
 //! | Area | Entry points |
 //! | --- | --- |
-//! | One-dimensional Bayesian quadrature | [`BayesianQuadrature`], [`RbfKernel`], [`GaussianMeasure`], [`ScalarNormalPosterior`] |
+//! | One-dimensional Bayesian quadrature | [`BayesianQuadrature`], [`RbfKernel`], [`GaussianMeasure`], [`PriorMean`], [`ScalarNormalPosterior`] |
 //! | Active Bayesian quadrature | [`ActiveBayesianQuadrature`], [`VarianceReductionAcquisition`] |
 //! | Probabilistic linear solvers | [`SpdLinearSystem`], [`GaussianLinearBelief`], [`ResidualProjectionSolver`], [`AConjugateProjectionSolver`], [`CovarianceGreedyProjectionSolver`] |
 //! | Building blocks | [`GaussianConditioner`], [`KernelMean`], [`KernelIntegral`], [`ScalarKernel`], [`ContinuousProbabilityMeasure`] |
@@ -92,6 +92,8 @@ mod linear_system;
 mod measure;
 mod measure_error;
 mod posterior;
+mod prior_mean;
+mod prior_mean_error;
 mod probabilistic_linear_solver;
 
 pub use a_conjugate_solver::{
@@ -122,6 +124,8 @@ pub use linear_system::SpdLinearSystem;
 pub use measure::{ContinuousProbabilityMeasure, GaussianMeasure};
 pub use measure_error::MeasureError;
 pub use posterior::ScalarNormalPosterior;
+pub use prior_mean::{AffineMean, ConstantMean, PriorMean, ZeroMean};
+pub use prior_mean_error::PriorMeanError;
 pub use probabilistic_linear_solver::{
     LinearSolveStep, LinearSolveTermination, ProbabilisticLinearSolveResult,
     ResidualProjectionSolver,

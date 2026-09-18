@@ -2,29 +2,75 @@
 
 use crate::{
     BayesianQuadratureError, GaussianConditioner, GaussianMeasure, KernelIntegral, KernelMean,
-    RbfKernel, ScalarKernel, ScalarNormalPosterior,
+    PriorMean, RbfKernel, ScalarKernel, ScalarNormalPosterior, ZeroMean,
 };
 
 /// Bayesian quadrature with an RBF covariance kernel and Gaussian integration measure.
 ///
-/// The current implementation assumes a zero Gaussian-process prior mean. This is
-/// intentionally explicit rather than hidden behind a generic prior-mean abstraction.
+/// The Gaussian-process prior mean is a type parameter. [`BayesianQuadrature::new`]
+/// builds the zero-mean model, and [`BayesianQuadrature::with_prior_mean`] accepts
+/// any [`PriorMean`] with an analytic integral under the Gaussian measure, such as
+/// [`ConstantMean`](crate::ConstantMean) or [`AffineMean`](crate::AffineMean).
+/// The prior mean shifts the posterior mean of the integral and leaves its
+/// posterior variance untouched.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct BayesianQuadrature {
+pub struct BayesianQuadrature<Mean = ZeroMean> {
     kernel: RbfKernel,
     measure: GaussianMeasure,
+    prior_mean: Mean,
     jitter: f64,
 }
 
-impl BayesianQuadrature {
-    /// Construct the first supported Bayesian quadrature configuration.
+impl BayesianQuadrature<ZeroMean> {
+    /// Construct the zero-prior-mean Bayesian quadrature configuration.
     #[must_use]
     pub const fn new(kernel: RbfKernel, measure: GaussianMeasure, jitter: f64) -> Self {
         Self {
             kernel,
             measure,
+            prior_mean: ZeroMean,
             jitter,
         }
+    }
+}
+
+impl<Mean> BayesianQuadrature<Mean> {
+    /// Construct a Bayesian quadrature configuration with an explicit prior mean.
+    ///
+    /// ```
+    /// use uncertain_numerics::{BayesianQuadrature, ConstantMean, GaussianMeasure, RbfKernel};
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let kernel = RbfKernel::new(1.0, 1.0)?;
+    /// let measure = GaussianMeasure::new(0.0, 1.0)?;
+    /// let quadrature =
+    ///     BayesianQuadrature::with_prior_mean(kernel, measure, ConstantMean::new(3.0)?, 1.0e-10);
+    ///
+    /// // An integrand equal to the prior mean is integrated exactly.
+    /// let posterior = quadrature.posterior(&[-1.0, 0.0, 1.0], &[3.0, 3.0, 3.0])?;
+    /// assert!((posterior.mean() - 3.0).abs() < 1.0e-9);
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub const fn with_prior_mean(
+        kernel: RbfKernel,
+        measure: GaussianMeasure,
+        prior_mean: Mean,
+        jitter: f64,
+    ) -> Self {
+        Self {
+            kernel,
+            measure,
+            prior_mean,
+            jitter,
+        }
+    }
+
+    /// Return the prior mean function.
+    #[must_use]
+    pub const fn prior_mean(&self) -> &Mean {
+        &self.prior_mean
     }
 
     /// Return the RBF kernel.
@@ -44,13 +90,17 @@ impl BayesianQuadrature {
     pub const fn jitter(&self) -> f64 {
         self.jitter
     }
+}
 
+impl<Mean: PriorMean<GaussianMeasure>> BayesianQuadrature<Mean> {
     /// Compute the posterior distribution of the integral from observed function values.
     ///
-    /// For observations `y = f(X)` and zero prior mean,
+    /// For observations `y = f(X)`, prior mean `m` with prior integral
+    /// `I_m = integral m(x) p(x) dx`, kernel mean `z`, and prior integral
+    /// variance `kappa`,
     ///
     /// ```text
-    /// posterior_mean = z^T (K + jitter I)^(-1) y
+    /// posterior_mean = I_m + z^T (K + jitter I)^(-1) (y - m(X))
     /// posterior_var  = kappa - z^T (K + jitter I)^(-1) z
     /// ```
     ///
@@ -81,11 +131,17 @@ impl BayesianQuadrature {
             .map(|&node| self.kernel.kernel_mean(&self.measure, node))
             .collect();
 
+        let centered_values: Vec<f64> = nodes
+            .iter()
+            .zip(values)
+            .map(|(&node, &value)| value - self.prior_mean.value(node))
+            .collect();
+
         let conditioner = GaussianConditioner::new(&gram, dimension, self.jitter)?;
-        let alpha = conditioner.solve(values)?;
+        let alpha = conditioner.solve(&centered_values)?;
         let v = conditioner.solve(&kernel_mean)?;
 
-        let posterior_mean = dot(&kernel_mean, &alpha);
+        let posterior_mean = self.prior_mean.integral(&self.measure) + dot(&kernel_mean, &alpha);
         let prior_integral_variance = self.kernel.kernel_integral(&self.measure);
         let raw_variance = prior_integral_variance - dot(&kernel_mean, &v);
         let posterior_variance =
@@ -137,8 +193,8 @@ fn non_negative_roundoff_variance(value: f64, scale: f64) -> Result<f64, Bayesia
 mod tests {
     use super::{BayesianQuadrature, non_negative_roundoff_variance};
     use crate::{
-        BayesianQuadratureError, ConditioningError, GaussianMeasure, KernelIntegral, KernelMean,
-        RbfKernel,
+        AffineMean, BayesianQuadratureError, ConditioningError, ConstantMean, GaussianMeasure,
+        KernelIntegral, KernelMean, RbfKernel,
     };
 
     const TOLERANCE: f64 = 1.0e-11;
@@ -155,6 +211,64 @@ mod tests {
         let kernel = RbfKernel::new(1.0, 1.2).expect("kernel parameters are valid");
         let measure = GaussianMeasure::new(0.0, 1.0).expect("measure parameters are valid");
         BayesianQuadrature::new(kernel, measure, 1.0e-12)
+    }
+
+    #[test]
+    fn constant_prior_mean_shifts_the_posterior_mean_only() {
+        let zero_mean = fixture();
+        let shifted = BayesianQuadrature::with_prior_mean(
+            zero_mean.kernel(),
+            zero_mean.measure(),
+            ConstantMean::new(2.5).expect("constant is valid"),
+            zero_mean.jitter(),
+        );
+        let nodes = [-1.5, -0.25, 0.75, 2.0];
+        let values = [0.3, -1.2, 2.2, 0.8];
+        let shifted_values: Vec<f64> = values.iter().map(|value| value + 2.5).collect();
+
+        let baseline = zero_mean
+            .posterior(&nodes, &values)
+            .expect("posterior is valid");
+        let posterior = shifted
+            .posterior(&nodes, &shifted_values)
+            .expect("posterior is valid");
+
+        assert_close(shifted.prior_mean().constant(), 2.5);
+        assert_close(posterior.mean(), baseline.mean() + 2.5);
+        assert_close(posterior.variance(), baseline.variance());
+    }
+
+    #[test]
+    fn constant_integrand_is_exact_under_matching_prior_mean() {
+        let base = fixture();
+        let quadrature = BayesianQuadrature::with_prior_mean(
+            base.kernel(),
+            base.measure(),
+            ConstantMean::new(-0.7).expect("constant is valid"),
+            base.jitter(),
+        );
+        let posterior = quadrature
+            .posterior(&[-2.0, 0.0, 1.0], &[-0.7, -0.7, -0.7])
+            .expect("posterior is valid");
+
+        assert_close(posterior.mean(), -0.7);
+        assert!(posterior.variance() > 0.0);
+    }
+
+    #[test]
+    fn affine_integrand_is_exact_under_matching_prior_mean() {
+        let kernel = RbfKernel::new(1.3, 0.9).expect("kernel parameters are valid");
+        let measure = GaussianMeasure::new(0.4, 2.0).expect("measure parameters are valid");
+        let prior_mean = AffineMean::new(1.5, -0.8).expect("coefficients are valid");
+        let quadrature = BayesianQuadrature::with_prior_mean(kernel, measure, prior_mean, 1.0e-12);
+        let nodes = [-1.0, 0.5, 2.0];
+        let values: Vec<f64> = nodes.iter().map(|&x| 1.5 - 0.8 * x).collect();
+        let posterior = quadrature
+            .posterior(&nodes, &values)
+            .expect("posterior is valid");
+
+        assert_close(posterior.mean(), 1.5 - 0.8 * 0.4);
+        assert!(posterior.variance() > 0.0);
     }
 
     #[test]
