@@ -189,7 +189,9 @@ Under exact noiseless Gaussian conditioning, subtracting combinations of previou
 - [x] verify residual and A-conjugate bases produce equivalent Gaussian posteriors at equal informative projection budgets;
 - [x] document the basis-invariance explanation and cases where equivalence can break;
 - [ ] validate uncertainty calibration on synthetic SPD systems;
-- [ ] benchmark against classical conjugate gradients at equal matrix-vector budgets.
+- [x] benchmark against classical conjugate gradients at equal matrix-vector budgets, and document that the identity-prior posterior mean is Craig's method (see `docs/conjugate-gradient-benchmark.md`);
+- [x] keep repeated projection conditioning positive semidefinite by clipping roundoff-scale negative eigenvalues;
+- [ ] investigate Krylov-adapted prior covariances that recover conjugate-gradient accuracy while keeping a calibrated posterior.
 
 ### M4.2 Later methods
 

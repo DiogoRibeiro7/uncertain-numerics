@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Equal-budget benchmark of the residual and A-conjugate projection solvers against classical conjugate gradients, with the proof and numerical check that the identity-prior posterior mean coincides with Craig's method (`docs/conjugate-gradient-benchmark.md`).
+
 ### Changed
 
 - Raised the minimum supported Rust version from 1.85 to 1.89, as required by nalgebra 0.35.
 - Updated `nalgebra` from 0.33 to 0.35. It is not part of the public API, so no user-visible behavior changes.
+
+### Fixed
+
+- `GaussianLinearBelief::condition_on_projection` could drift into a numerically indefinite covariance and fail after a handful of projections on moderately conditioned systems. Roundoff-scale negative eigenvalues of the updated covariance are now clipped to zero; material violations are still reported.
 
 ## [0.1.0] - 2026-09-17
 

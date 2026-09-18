@@ -227,6 +227,7 @@ The integration tests are scientific studies rather than smoke tests. Each docum
 | `linear_solver_calibration` | Calibration under fixed projection directions, and the conservative uncertainty produced by adaptive residual selection. |
 | `linear_policy_equivalence` | Residual and A-conjugate policies yield the same Gaussian posterior at equal informative budgets. |
 | `covariance_greedy_calibration` | Data-independent direction selection preserves calibration. |
+| `conjugate_gradient_benchmark` | Equal matrix-vector budgets: classical conjugate gradients versus the projection solvers, and the identity-prior posterior mean equals Craig's method. |
 
 Run everything with:
 
@@ -241,6 +242,7 @@ cargo test --all-features
 - [Calibration of probabilistic linear-solver uncertainty](https://github.com/DiogoRibeiro7/uncertain-numerics/blob/main/docs/linear-solver-calibration.md)
 - [Linear-policy equivalence under exact Gaussian conditioning](https://github.com/DiogoRibeiro7/uncertain-numerics/blob/main/docs/linear-policy-equivalence.md)
 - [Covariance-greedy probabilistic linear solver](https://github.com/DiogoRibeiro7/uncertain-numerics/blob/main/docs/covariance-greedy-linear-solver.md)
+- [Probabilistic linear solvers versus conjugate gradients](https://github.com/DiogoRibeiro7/uncertain-numerics/blob/main/docs/conjugate-gradient-benchmark.md)
 - [Roadmap](https://github.com/DiogoRibeiro7/uncertain-numerics/blob/main/ROADMAP.md) and [changelog](https://github.com/DiogoRibeiro7/uncertain-numerics/blob/main/CHANGELOG.md)
 
 ## Design principles
@@ -261,6 +263,7 @@ Current limitations worth knowing before you depend on it:
 - Bayesian quadrature supports one dimension, the RBF kernel, a Gaussian measure, and a zero prior mean.
 - Linear solvers operate on dense SPD systems and use dense covariance matrices, so they are meant for moderate dimensions.
 - Posterior uncertainty from the adaptive residual policies is conservative under repeated prior draws; use the covariance-greedy policy when calibration matters.
+- With the identity prior, the projection solvers are Craig's method in disguise: at equal matrix-vector budgets classical conjugate gradients is far more accurate. Use them for the posterior covariance, not for speed. See the benchmark note in the documentation list.
 
 The project will not become a general machine-learning framework, Gaussian-process package, or replacement for classical numerical-integration crates.
 
