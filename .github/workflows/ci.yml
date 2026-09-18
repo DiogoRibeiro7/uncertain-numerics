@@ -65,11 +65,19 @@ jobs:
         run: cargo test --all-features --doc
 
   msrv:
-    name: MSRV (1.89)
+    # The job name is referenced by the branch ruleset, so keep it stable.
+    # The toolchain version comes from `rust-version` in Cargo.toml.
+    name: MSRV
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.89
+      - name: Read rust-version from Cargo.toml
+        id: msrv
+        run: echo "version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].rust_version')" >> "$GITHUB_OUTPUT"
+      - name: Install Rust ${{ steps.msrv.outputs.version }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo check --all-features --all-targets
 

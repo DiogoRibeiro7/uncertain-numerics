@@ -3,7 +3,7 @@
 [![CI](https://github.com/DiogoRibeiro7/uncertain-numerics/actions/workflows/ci.yml/badge.svg)](https://github.com/DiogoRibeiro7/uncertain-numerics/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/uncertain-numerics.svg)](https://crates.io/crates/uncertain-numerics)
 [![docs.rs](https://img.shields.io/docsrs/uncertain-numerics)](https://docs.rs/uncertain-numerics)
-[![MSRV](https://img.shields.io/badge/MSRV-1.89-blue.svg)](#minimum-supported-rust-version)
+[![MSRV](https://img.shields.io/crates/msrv/uncertain-numerics)](#minimum-supported-rust-version)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
 
 Probabilistic numerical methods in Rust, with explicit uncertainty over computational quantities.
