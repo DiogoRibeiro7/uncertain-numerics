@@ -4,15 +4,21 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    groups:
-      cargo-minor-and-patch:
-        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 5
     ignore:
       # This action is referenced by moving refs (`@stable`, `@master`) and the MSRV
       # job passes the version as an input, so there is nothing for Dependabot to bump.
       - dependency-name: dtolnay/rust-toolchain
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
